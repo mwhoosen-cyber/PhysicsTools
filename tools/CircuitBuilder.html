@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CircuitBuilder - Physics Toolkit</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Fabric.js for Canvas Manipulation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+
+  <!-- Brand Typography & Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#2E1065',    // Midnight Indigo
+            secondary: '#84CC16',  // Matcha
+            bg: '#F8FAFC',         // Paper White
+            surface: '#FFFFFF',    // Card White
+            sub1: '#64748B',       // Slate
+            accent: '#8B5CF6',     // Violet
+            alert: '#EA580C',      // Burnt Orange
+            success: '#14B8A6',    // Teal
+          },
+          fontFamily: {
+            heading: ['Lexend', 'sans-serif'],
+            body: ['Atkinson Hyperlegible', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;900&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap');
+
+    body { margin: 0; overflow: hidden; }
+
+    /* Tactile Brand Classes */
+    .btn-tactile {
+      border: 2px solid #2E1065;
+      background-color: #FFFFFF;
+      color: #2E1065;
+      box-shadow: 2px 2px 0px #2E1065; /* Sleeker modern shadow */
+      transition: all 0.1s ease;
+      font-weight: 700;
+      padding: 0.5rem 1rem;
+      border-radius: 0.75rem; /* Rounded modern corners */
+      cursor: pointer;
+      text-align: center;
+      user-select: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem; /* Space for inline icons */
+    }
+
+    .btn-tactile:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0px #2E1065;
+    }
+
+    .btn-tactile:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px #2E1065;
+    }
+
+    /* Active Tool State */
+    .btn-active {
+      background-color: #84CC16 !important; /* Matcha */
+      transform: translate(2px, 2px) !important;
+      box-shadow: 0px 0px 0px #2E1065 !important;
+    }
+
+    .btn-icon {
+      padding: 0.5rem;
+      aspect-ratio: auto;
+      min-height: 3.5rem;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .btn-primary {
+      background-color: #84CC16;
+    }
+
+    .btn-alert {
+      background-color: #EA580C;
+      color: #FFFFFF;
+    }
+
+    .card-tactile {
+      background: #FFFFFF;
+      border: 2px solid #2E1065;
+      box-shadow: 4px 4px 0px #CBD5E1;
+      border-radius: 12px;
+    }
+
+    /* Floating Toolbar Container */
+    .floating-toolbar {
+      backdrop-filter: blur(8px);
+      background-color: rgba(255, 255, 255, 0.9);
+      border: 2px solid #2E1065;
+      box-shadow: 4px 4px 0px rgba(46, 16, 101, 0.1);
+    }
+
+    /* Custom Canvas Cursor states */
+    .drawing-wire {
+      cursor: crosshair !important;
+    }
+    
+    .erasing-mode, .erasing-mode .canvas-container {
+      cursor: crosshair !important;
+    }
+    
+    /* Hide scrollbar for clean sidebar */
+    aside::-webkit-scrollbar { display: none; }
+    aside { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="flex h-screen bg-bg font-body text-primary">
+
+  <!-- Sidebar Component Palette -->
+  <aside class="w-64 p-4 flex flex-col gap-3 overflow-y-auto border-r-2 border-primary surface z-10 shadow-[4px_0_15px_rgba(0,0,0,0.05)]">
+    <div class="mb-0">
+      <h1 class="font-heading text-2xl font-black tracking-tight text-primary leading-none">CircuitBuilder</h1>
+      <p class="text-xs font-bold text-sub1 mt-1">powered by <span class="text-secondary">SimLabs</span></p>
+    </div>
+
+    <div class="card-tactile p-3 text-[11px] font-medium text-primary leading-relaxed mt-1">
+      <strong>Pro Tips:</strong><br/>
+      • Drag parts to snap perfectly.<br/>
+      • Middle-click or Alt+Drag to pan.<br/>
+      • Double-click parts to rotate 90°.<br/>
+      • Right-click parts to add labels/edit.
+    </div>
+
+    <div class="space-y-2 mt-1 flex-1">
+      <h2 class="font-heading font-bold text-sm border-b-2 border-primary pb-1">Components</h2>
+      <div class="grid grid-cols-3 gap-2">
+        <button class="btn-tactile btn-icon" title="Resistor" draggable="true" ondragstart="handleDragStart(event, 'resistor')" onclick="addComponent('resistor')">
+          <svg viewBox="0 0 60 20" class="w-10 h-6 stroke-primary" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M0 10 h15 v-7 h30 v14 h-30 v-7 M45 10 h15" fill="#fff"/></svg>
+        </button>
+        <button class="btn-tactile btn-icon" title="Rheostat" draggable="true" ondragstart="handleDragStart(event, 'rheostat')" onclick="addComponent('rheostat')">
+          <svg viewBox="0 0 60 30" class="w-10 h-8 stroke-primary" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M0 20 h15 v-7 h30 v14 h-30 v-7 M45 20 h15" fill="#fff"/>
+            <path d="M12 28 L42 6" />
+            <polygon points="45,4 35,6 40,13" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+        <button class="btn-tactile btn-icon" title="Single Cell" draggable="true" ondragstart="handleDragStart(event, 'cell')" onclick="addComponent('cell')">
+          <svg viewBox="0 0 60 30" class="w-10 h-8 stroke-primary" fill="none" stroke-width="3"><path d="M0 15 h25 M35 15 h25 M25 0 v30 M35 7 v16" stroke-linecap="round"/><path d="M35 7 v16" stroke-width="6" stroke-linecap="round"/></svg>
+        </button>
+        <button class="btn-tactile btn-icon" title="Battery" draggable="true" ondragstart="handleDragStart(event, 'battery')" onclick="addComponent('battery')">
+          <svg viewBox="0 0 60 30" class="w-10 h-8 stroke-primary" fill="none" stroke-width="3"><path d="M0 15 h15 M15 0 v30 M25 7 v16 M25 15 h10" stroke-dasharray="3,3" stroke-linecap="round"/><path d="M35 0 v30 M45 7 v16 M45 15 h15" stroke-linecap="round"/><path d="M25 7 v16 M45 7 v16" stroke-width="6" stroke-linecap="round"/></svg>
+        </button>
+        <button class="btn-tactile btn-icon" title="AC Source" draggable="true" ondragstart="handleDragStart(event, 'ac')" onclick="addComponent('ac')">
+          <svg viewBox="0 0 60 30" class="w-10 h-8 stroke-primary" fill="none" stroke-width="3"><path d="M0 15 h15 M45 15 h15" /><circle cx="30" cy="15" r="12" fill="#fff"/><path d="M22 15 Q 26 8 30 15 T 38 15" stroke-linecap="round"/></svg>
+        </button>
+        <button class="btn-tactile btn-icon" title="Lightbulb" draggable="true" ondragstart="handleDragStart(event, 'lightbulb')" onclick="addComponent('lightbulb')">
+          <svg viewBox="0 0 60 30" class="w-10 h-8 stroke-primary" fill="none" stroke-width="3"><path d="M0 15 h18 M42 15 h18" /><circle cx="30" cy="15" r="12" fill="#fff"/><path d="M22 7 l16 16 M22 23 l16 -16" stroke-linecap="round"/></svg>
+        </button>
+        <button class="btn-tactile btn-icon" title="Ammeter" draggable="true" ondragstart="handleDragStart(event, 'ammeter')" onclick="addComponent('ammeter')">
+          <svg viewBox="0 0 60 30" class="w-10 h-8 stroke-primary" fill="none" stroke-width="3"><path d="M0 15 h18 M42 15 h18" /><circle cx="30" cy="15" r="12" fill="#fff"/><text x="30" y="21" text-anchor="middle" font-size="16" font-family="Arial" font-weight="bold" stroke-width="1" fill="currentColor">A</text></svg>
+        </button>
+        <button class="btn-tactile btn-icon" title="Voltmeter" draggable="true" ondragstart="handleDragStart(event, 'voltmeter')" onclick="addComponent('voltmeter')">
+          <svg viewBox="0 0 60 30" class="w-10 h-8 stroke-primary" fill="none" stroke-width="3"><path d="M0 15 h18 M42 15 h18" /><circle cx="30" cy="15" r="12" fill="#fff"/><text x="30" y="21" text-anchor="middle" font-size="16" font-family="Arial" font-weight="bold" stroke-width="1" fill="currentColor">V</text></svg>
+        </button>
+        <button class="btn-tactile btn-icon" title="Switch" draggable="true" ondragstart="handleDragStart(event, 'switch')" onclick="addComponent('switch')">
+          <svg viewBox="0 0 60 30" class="w-10 h-8 stroke-primary" fill="none" stroke-width="3" stroke-linecap="round"><path d="M0 20 h15 M40 20 h20 M15 20 L35 5" /><circle cx="15" cy="20" r="3" fill="currentColor"/><circle cx="40" cy="20" r="3" fill="currentColor"/></svg>
+        </button>
+        <button class="btn-tactile btn-icon" title="Closed Switch" draggable="true" ondragstart="handleDragStart(event, 'switchClosed')" onclick="addComponent('switchClosed')">
+          <svg viewBox="0 0 60 30" class="w-10 h-8 stroke-primary" fill="none" stroke-width="3" stroke-linecap="round"><path d="M0 20 h15 M40 20 h20 M15 20 h25" /><circle cx="15" cy="20" r="3" fill="currentColor"/><circle cx="40" cy="20" r="3" fill="currentColor"/></svg>
+        </button>
+        <button class="btn-tactile btn-icon" title="Node Dot" draggable="true" ondragstart="handleDragStart(event, 'node')" onclick="addComponent('node')">
+          <svg viewBox="0 0 20 20" class="w-6 h-6 stroke-primary" fill="none"><circle cx="10" cy="10" r="6" fill="currentColor"/></svg>
+        </button>
+        <button class="btn-tactile col-span-3 flex items-center justify-center gap-3 py-2" title="Real Battery" draggable="true" ondragstart="handleDragStart(event, 'realBattery')" onclick="addComponent('realBattery')">
+          <svg viewBox="0 0 100 40" class="w-12 h-6 stroke-primary" fill="none" stroke-width="2.5"><rect x="10" y="2" width="80" height="36" stroke-dasharray="4,4" rx="4"/><path d="M0 20 h25 M25 10 v20 M35 15 v10 M35 20 h10 M45 15 h20 v10 h-20 v-5 M65 20 h35" stroke-linecap="round"/><path d="M35 15 v10" stroke-width="5" stroke-linecap="round"/></svg>
+          <span class="text-[10px] font-bold">Real Battery</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Canvas Workspace -->
+  <main class="flex-1 flex flex-col relative bg-bg">
+    <!-- Floating Top Toolbar (Modernized) -->
+    <header class="absolute top-6 left-1/2 transform -translate-x-1/2 floating-toolbar rounded-2xl px-3 py-2 flex items-center gap-3 z-20">
+      <div class="flex items-center gap-2 border-r-2 border-sub1/20 pr-3">
+        <button id="wireToolBtn" class="btn-tactile text-sm" onclick="toggleWireMode()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M4 4v16h16"/></svg>
+          Draw Wire
+        </button>
+        <button id="eraserToolBtn" class="btn-tactile text-sm" onclick="toggleEraserMode()" title="Eraser Tool">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M20 20H7L3 16C2.5 15.5 2.5 14.5 3 14L13 4C13.5 3.5 14.5 3.5 15 4L20 9C20.5 9.5 20.5 10.5 20 11L11 20H20V20Z"/><path d="M17 14L7 20"/></svg>
+        </button>
+        <button class="btn-tactile text-sm" onclick="addLabel()" title="Add Label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+        </button>
+      </div>
+      <div class="flex items-center gap-2 border-r-2 border-sub1/20 pr-3">
+        <button class="btn-tactile text-sm" onclick="undo()" title="Undo Last Action (Ctrl+Z)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" /></svg>
+        </button>
+        <button class="btn-tactile btn-alert text-sm" onclick="deleteSelected()" title="Delete Selected">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn-tactile text-sm" onclick="toggleGrid()" title="Toggle Grid">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+        </button>
+        <button class="btn-tactile text-sm" onclick="clearCanvas()" title="Clear Canvas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 9l6 6M15 9l-6 6"/></svg>
+          Clear
+        </button>
+        <button class="btn-tactile btn-primary text-sm" onclick="downloadPNG()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Export PNG
+        </button>
+      </div>
+    </header>
+
+    <!-- Interactive Canvas -->
+    <div class="flex-1 relative overflow-hidden bg-bg" id="canvas-container" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+      <canvas id="c"></canvas>
+      
+      <!-- Hovering Context Menu (Modernized) -->
+      <div id="contextMenu" class="absolute z-50 bg-surface border-2 border-primary rounded-xl shadow-[4px_4px_0px_rgba(46,16,101,1)] p-4 hidden flex-col gap-4 w-64" style="pointer-events: auto;">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-primary uppercase tracking-wider">Component Label</label>
+          <input type="text" id="menuLabelInput" class="border-2 border-sub1/30 rounded-lg px-3 py-2 focus:outline-none focus:border-secondary transition-colors" placeholder="e.g. R₁, 12V" style="font-family: 'Times New Roman', Times, serif; font-size: 1.1rem; font-style: italic;">
+          
+          <!-- Quick Symbols Palette -->
+          <div class="mt-1 flex flex-col gap-1">
+            <span class="text-[10px] font-bold text-sub1 uppercase tracking-wider">Quick Symbols</span>
+            <div class="grid grid-cols-6 gap-1">
+              <button onclick="insertSymbol('Ω')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors" title="Ohms">Ω</button>
+              <button onclick="insertSymbol('ε')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors" title="Epsilon (EMF)">ε</button>
+              <button onclick="insertSymbol('₀')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors bg-bg" title="Subscript 0">₀</button>
+              <button onclick="insertSymbol('₁')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors bg-bg" title="Subscript 1">₁</button>
+              <button onclick="insertSymbol('₂')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors bg-bg" title="Subscript 2">₂</button>
+              <button onclick="insertSymbol('₃')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors bg-bg" title="Subscript 3">₃</button>
+              
+              <button onclick="insertSymbol('₄')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors bg-bg" title="Subscript 4">₄</button>
+              <button onclick="insertSymbol('₅')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors bg-bg" title="Subscript 5">₅</button>
+              <button onclick="insertSymbol('₆')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors bg-bg" title="Subscript 6">₆</button>
+              <button onclick="insertSymbol('₇')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors bg-bg" title="Subscript 7">₇</button>
+              <button onclick="insertSymbol('₈')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors bg-bg" title="Subscript 8">₈</button>
+              <button onclick="insertSymbol('₉')" class="py-1 rounded border border-sub1/30 text-xs font-mono text-primary hover:bg-sub1/10 transition-colors bg-bg" title="Subscript 9">₉</button>
+            </div>
+          </div>
+        </div>
+        
+        <div id="batterySettings" class="hidden flex-col gap-1.5 border-t-2 border-sub1/10 pt-3">
+          <label class="text-xs font-bold text-primary uppercase tracking-wider">Number of Cells</label>
+          <input type="number" id="menuCellsInput" min="1" max="6" class="border-2 border-sub1/30 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-secondary transition-colors">
+        </div>
+        <button class="btn-tactile btn-alert py-1.5 text-xs w-full mt-1" onclick="deleteSelected()">Remove Component</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Clear Canvas Custom Modal -->
+  <div id="clearModal" class="absolute inset-0 bg-primary/20 backdrop-blur-sm z-[100] hidden flex items-center justify-center pointer-events-auto">
+    <div class="card-tactile p-6 max-w-sm w-full mx-4 flex flex-col gap-4 shadow-[8px_8px_0px_rgba(46,16,101,0.2)]">
+      <h3 class="font-heading font-bold text-xl text-primary">Clear Canvas?</h3>
+      <p class="text-sm font-body text-primary">Are you sure you want to delete all components and wires? You can still undo this action using Ctrl+Z.</p>
+      <div class="flex justify-end gap-3 mt-2">
+        <button class="btn-tactile py-1.5 px-4 text-sm" onclick="cancelClearCanvas()">Cancel</button>
+        <button class="btn-tactile btn-alert py-1.5 px-4 text-sm" onclick="confirmClearCanvas()">Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Initial Setup & State ---
+    
+    // Prevent the default browser context menu globally, except within input fields
+    window.addEventListener('contextmenu', function(e) {
+        if (e.target.tagName !== 'INPUT') {
+            e.preventDefault();
+        }
+    });
+
+    const canvas = new fabric.Canvas('c', { 
+        selection: true,
+        fireRightClick: true,  // Enables right click interception
+        stopContextMenu: true  // Prevents the browser's default right click menu
+    });
+    
+    const gridSize = 20;
+    let isGridVisible = true;
+    let gridPattern;
+    
+    let isDrawingWire = false;
+    let isErasing = false;
+    let isDraggingCanvas = false;
+    let lastPosX = 0;
+    let lastPosY = 0;
+    let currentWire = null;
+    
+    // --- Undo History Tracking ---
+    let undoStack = [];
+    const customProps = ['id', 'componentType', 'numCells', 'labelText', 'labelId', 'prevLeft', 'prevTop'];
+
+    function generateId() {
+        return Math.random().toString(36).substr(2, 9);
+    }
+
+    function saveState() {
+        undoStack.push(canvas.toJSON(customProps));
+        if (undoStack.length > 50) undoStack.shift(); // Keep last 50 actions
+    }
+
+    function undo() {
+        if (undoStack.length > 0) {
+            if (isDrawingWire) toggleWireMode();
+            if (isErasing) toggleEraserMode();
+            
+            const state = undoStack.pop();
+            canvas.loadFromJSON(state, function() {
+                canvas.getObjects().forEach(obj => {
+                    if (obj.labelId) {
+                        obj.labelRef = canvas.getObjects().find(o => o.id === obj.labelId);
+                    }
+                });
+                canvas.setBackgroundColor(isGridVisible ? gridPattern : null, canvas.renderAll.bind(canvas));
+                canvas.requestRenderAll();
+                hideContextMenu();
+            });
+        }
+    }
+
+    // Adjust Canvas to fill available space
+    function resizeCanvas() {
+      const container = document.getElementById('canvas-container');
+      canvas.setWidth(container.clientWidth);
+      canvas.setHeight(container.clientHeight);
+      canvas.renderAll();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // --- Grid System ---
+    function initGrid() {
+      const patternCanvas = document.createElement('canvas');
+      patternCanvas.width = gridSize;
+      patternCanvas.height = gridSize;
+      const ctx = patternCanvas.getContext('2d');
+      
+      ctx.fillStyle = '#94A3B8'; // Tailwind slate-400
+      
+      // Draw four dots exactly at the corners for perfectly symmetric mathematical grid alignment
+      // This ensures visual dots perfectly map to coordinates like (0, 20, 40)
+      ctx.beginPath(); ctx.arc(0, 0, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(gridSize, 0, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, gridSize, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(gridSize, gridSize, 1.5, 0, Math.PI * 2); ctx.fill();
+
+      gridPattern = new fabric.Pattern({
+        source: patternCanvas,
+        repeat: 'repeat'
+      });
+      canvas.setBackgroundColor(gridPattern, canvas.renderAll.bind(canvas));
+    }
+
+    function toggleGrid() {
+      isGridVisible = !isGridVisible;
+      canvas.setBackgroundColor(isGridVisible ? gridPattern : null, canvas.renderAll.bind(canvas));
+    }
+
+    // --- Global Canvas Settings for High Resolution ---
+    // Prevents blurriness/pixelation by forcing continuous vector rendering instead of raster caching
+    fabric.Object.prototype.objectCaching = false; 
+
+    // --- Component Factories (Textbook Standard) ---
+    // All components are designed on an internal coordinate system to guarantee perfect alignment.
+    // By using a uniform 120x80 invisible background rect for EVERY component, we guarantee
+    // that the mathematical geometric center is EXACTLY symmetrical and aligned perfectly at Y=0.
+    
+    const defaultGroupConfig = { originX: 'center', originY: 'center', hasControls: false, padding: 0, objectCaching: false };
+
+    function createResistor() {
+      return new fabric.Group([
+        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }), // Perfect geometric anchor
+        new fabric.Line([-60, 0, -30, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Rect({ left: -30, top: -10, width: 60, height: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([30, 0, 60, 0], { stroke: '#000', strokeWidth: 2 })
+      ], defaultGroupConfig);
+    }
+
+    function createRheostat() {
+      return new fabric.Group([
+        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Line([-60, 0, -30, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Rect({ left: -30, top: -10, width: 60, height: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([30, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([-20, 15, 20, -15], { stroke: '#000', strokeWidth: 2 }), // Diagonal strike-through
+        new fabric.Triangle({
+          left: 20, top: -15,
+          width: 10, height: 12,
+          fill: '#000',
+          originX: 'center', originY: 'top',
+          angle: 53.13 // Mathematically aligns with the diagonal line slope
+        })
+      ], defaultGroupConfig);
+    }
+
+    function createCell() {
+      return new fabric.Group([
+        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Line([-60, 0, -5, 0], { stroke: '#000', strokeWidth: 2 }), // Wire L
+        new fabric.Line([-5, -15, -5, 15], { stroke: '#000', strokeWidth: 2 }), // Positive
+        new fabric.Line([5, -10, 5, 10], { stroke: '#000', strokeWidth: 4 }),  // Negative
+        new fabric.Line([5, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }) // Wire R
+      ], defaultGroupConfig);
+    }
+
+    function createBattery(numCells = 2) {
+      const objects = [
+        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 })
+      ];
+      
+      const cellW = 10;
+      const spaceW = 10;
+      const step = cellW + spaceW; // 20px per cell pair
+      const totalW = (numCells * step) - spaceW; // Total visual width of the core elements
+      const startX = -totalW / 2;
+      
+      // Starting Wire
+      objects.push(new fabric.Line([-60, 0, startX, 0], { stroke: '#000', strokeWidth: 2 }));
+      
+      let currX = startX;
+      for(let i = 0; i < numCells; i++) {
+          // Positive plate
+          objects.push(new fabric.Line([currX, -15, currX, 15], { stroke: '#000', strokeWidth: 2 }));
+          // Negative plate
+          objects.push(new line([currX + cellW, -10, currX + cellW, 10], { stroke: '#000', strokeWidth: 4 }));
+          
+          if (i < numCells - 1) {
+             // Dashed wire connector
+             objects.push(new fabric.Line([currX + cellW, 0, currX + step, 0], { stroke: '#000', strokeWidth: 2, strokeDashArray: [3, 3] }));
+          } else {
+             // Final tail wire
+             objects.push(new fabric.Line([currX + cellW, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }));
+          }
+          currX += step;
+      }
+      
+      return new fabric.Group(objects, defaultGroupConfig);
+    }
+
+    function createAC() {
+      return new fabric.Group([
+        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Circle({ left: -20, top: -20, radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Path('M -10 0 Q -5 -10 0 0 T 10 0', { left: -10, top: -5, fill: 'transparent', stroke: '#000', strokeWidth: 2 })
+      ], defaultGroupConfig);
+    }
+
+    function createAmmeter() {
+      return new fabric.Group([
+        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Circle({ left: -20, top: -20, radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Text('A', { left: 0, top: 0, originX: 'center', originY: 'center', fontSize: 22, fontFamily: 'Times New Roman', objectCaching: false })
+      ], defaultGroupConfig);
+    }
+
+    function createVoltmeter() {
+      return new fabric.Group([
+        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Circle({ left: -20, top: -20, radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Text('V', { left: 0, top: 0, originX: 'center', originY: 'center', fontSize: 22, fontFamily: 'Times New Roman', objectCaching: false })
+      ], defaultGroupConfig);
+    }
+
+    function createLightbulb() {
+      return new fabric.Group([
+        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Circle({ left: -20, top: -20, radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([-14, -14, 14, 14], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([-14, 14, 14, -14], { stroke: '#000', strokeWidth: 2 })
+      ], defaultGroupConfig);
+    }
+
+    function createSwitch() {
+      return new fabric.Group([
+        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Line([-60, 0, -15, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Circle({ left: -17, top: -2, radius: 2, fill: '#000' }),
+        new fabric.Circle({ left: 13, top: -2, radius: 2, fill: '#000' }),
+        new fabric.Line([-15, 0, 10, -15], { stroke: '#000', strokeWidth: 2 }), // Blade open
+        new fabric.Line([15, 0, 60, 0], { stroke: '#000', strokeWidth: 2 })
+      ], defaultGroupConfig);
+    }
+
+    function createSwitchClosed() {
+      return new fabric.Group([
+        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Line([-60, 0, -15, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Circle({ left: -17, top: -2, radius: 2, fill: '#000' }),
+        new fabric.Circle({ left: 13, top: -2, radius: 2, fill: '#000' }),
+        new fabric.Line([-15, 0, 15, 0], { stroke: '#000', strokeWidth: 2 }), // Blade closed
+        new fabric.Line([15, 0, 60, 0], { stroke: '#000', strokeWidth: 2 })
+      ], defaultGroupConfig);
+    }
+
+    function createRealBattery() {
+      return new fabric.Group([
+        new fabric.Rect({ left: -80, top: -40, width: 160, height: 80, fill: 'transparent', strokeWidth: 0 }), // 160x80 container
+        new fabric.Rect({ left: -60, top: -30, width: 120, height: 60, fill: 'transparent', stroke: '#000', strokeWidth: 1.5, strokeDashArray: [5, 5] }),
+        new fabric.Line([-80, 0, -40, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([-40, -15, -40, 15], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Line([-30, -10, -30, 10], { stroke: '#000', strokeWidth: 4 }),
+        new fabric.Line([-30, 0, 10, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Rect({ left: 10, top: -10, width: 40, height: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
+        new fabric.Text('r', { left: 30, top: -20, originX: 'center', originY: 'center', fontSize: 16, fontFamily: 'Times New Roman', fontStyle: 'italic', objectCaching: false }),
+        new fabric.Text('ε', { left: -35, top: -22, originX: 'center', originY: 'center', fontSize: 18, fontFamily: 'Times New Roman', fontStyle: 'italic', objectCaching: false }),
+        new fabric.Line([50, 0, 80, 0], { stroke: '#000', strokeWidth: 2 })
+      ], { originX: 'center', originY: 'center', hasControls: false, padding: 0 });
+    }
+
+    function createNode() {
+      return new fabric.Group([
+        // Enlarged invisible bounding rect specifically to make the node much easier to click/erase
+        new fabric.Rect({ left: -20, top: -20, width: 40, height: 40, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Circle({ left: -4, top: -4, radius: 4, fill: '#000' })
+      ], defaultGroupConfig);
+    }
+
+    const factories = {
+      resistor: createResistor, rheostat: createRheostat, cell: createCell, battery: createBattery,
+      ac: createAC, ammeter: createAmmeter, voltmeter: createVoltmeter, lightbulb: createLightbulb,
+      switch: createSwitch, switchClosed: createSwitchClosed, realBattery: createRealBattery, node: createNode
+    };
+
+    // --- Core Functionality ---
+
+    function addComponent(type) {
+      if (isDrawingWire) toggleWireMode(); // Safety reset
+      if (isErasing) toggleEraserMode();
+      
+      if (factories[type]) {
+        saveState();
+        const obj = factories[type]();
+        obj.set({ id: generateId(), componentType: type });
+        if (type === 'battery') obj.set({ numCells: 2 });
+        
+        // Place in center of current view, snapped to grid
+        const vpt = canvas.viewportTransform;
+        const centerX = Math.round(((canvas.width / 2) - vpt[4]) / gridSize) * gridSize;
+        const centerY = Math.round(((canvas.height / 2) - vpt[5]) / gridSize) * gridSize;
+        obj.set({ left: centerX, top: centerY });
+        canvas.add(obj);
+        canvas.setActiveObject(obj);
+      }
+    }
+
+    // --- Drag and Drop Logic ---
+    function handleDragStart(e, type) {
+        e.dataTransfer.setData('componentType', type);
+        e.dataTransfer.effectAllowed = 'copy';
+        
+        // Target specifically the SVG icon to act as the drag image, avoiding the button background
+        const svgIcon = e.currentTarget.querySelector('svg');
+        if (svgIcon) {
+            e.dataTransfer.setDragImage(svgIcon, svgIcon.clientWidth / 2, svgIcon.clientHeight / 2);
+        }
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault(); // Necessary to allow dropping
+        e.dataTransfer.dropEffect = 'copy';
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('componentType');
+        if (!type || !factories[type]) return;
+
+        if (isDrawingWire) toggleWireMode();
+        if (isErasing) toggleEraserMode();
+        saveState();
+
+        const container = document.getElementById('canvas-container');
+        const rect = container.getBoundingClientRect();
+        
+        // Calculate raw drop coordinates relative to the container
+        const rawX = e.clientX - rect.left;
+        const rawY = e.clientY - rect.top;
+        
+        // Account for canvas pan (viewportTransform)
+        const vpt = canvas.viewportTransform;
+        const logicalX = (rawX - vpt[4]) / vpt[0];
+        const logicalY = (rawY - vpt[5]) / vpt[3];
+
+        // Snap to grid
+        const snappedX = Math.round(logicalX / gridSize) * gridSize;
+        const snappedY = Math.round(logicalY / gridSize) * gridSize;
+
+        const obj = factories[type]();
+        obj.set({ id: generateId(), componentType: type });
+        if (type === 'battery') obj.set({ numCells: 2 });
+        
+        obj.set({ left: snappedX, top: snappedY });
+        canvas.add(obj);
+        canvas.setActiveObject(obj);
+    }
+
+    // --- Context Menu & Label Logic ---
+    
+    function showContextMenu(obj) {
+      if (!obj || isDrawingWire) return; // Allow i-text to be right clicked now
+
+      updateContextMenuPosition({target: obj});
+
+      const labelInput = document.getElementById('menuLabelInput');
+      
+      // Determine what text to populate based on if it's a standalone label or a component
+      if (obj.type === 'i-text') {
+          labelInput.value = obj.text || '';
+      } else {
+          labelInput.value = obj.labelText || '';
+      }
+      
+      const batterySettings = document.getElementById('batterySettings');
+      if (obj.componentType === 'battery') {
+          batterySettings.classList.remove('hidden');
+          batterySettings.classList.add('flex');
+          document.getElementById('menuCellsInput').value = obj.numCells || 2;
+      } else {
+          batterySettings.classList.add('hidden');
+          batterySettings.classList.remove('flex');
+      }
+
+      const menu = document.getElementById('contextMenu');
+      menu.classList.remove('hidden');
+      menu.classList.add('flex');
+      
+      // Automatically focus the input for fast typing
+      setTimeout(() => labelInput.focus(), 10);
+    }
+
+    function hideContextMenu() {
+      const menu = document.getElementById('contextMenu');
+      menu.classList.add('hidden');
+      menu.classList.remove('flex');
+    }
+
+    function updateContextMenuPosition(e) {
+      const obj = e.target;
+      const menu = document.getElementById('contextMenu');
+      if (menu.classList.contains('hidden')) return;
+
+      const boundingRect = obj.getBoundingRect();
+      const containerOffset = document.getElementById('canvas-container').getBoundingClientRect();
+      
+      let left = boundingRect.left + boundingRect.width + 15;
+      let top = boundingRect.top;
+
+      // Prevent menu from overflowing right edge
+      if (left + 224 > containerOffset.width) {
+          left = boundingRect.left - 240;
+      }
+      
+      menu.style.left = `${left}px`;
+      menu.style.top = `${top}px`;
+    }
+
+    function updateComponentLabel(obj, text) {
+      obj.labelText = text;
+      if (!obj.labelRef) {
+          if (text.trim() === '') return;
+          const label = new fabric.IText(text, {
+              id: generateId(),
+              left: obj.left,
+              top: obj.top - 45,
+              originX: 'center',
+              originY: 'center',
+              fontFamily: 'Times New Roman',
+              fontStyle: 'italic',
+              fontSize: 26,
+              fill: '#000',
+              selectable: true,
+              hasControls: true,
+              editable: false, // Prevents accidental text selection, making it act like a solid draggable block
+              objectCaching: false // Keeps unicode subscripts perfectly sharp
+          });
+          canvas.add(label);
+          obj.labelRef = label;
+          obj.set({ labelId: label.id });
+      } else {
+          obj.labelRef.set('text', text);
+          if (text.trim() === '') {
+              canvas.remove(obj.labelRef);
+              obj.labelRef = null;
+              obj.set({ labelId: null });
+          }
+          canvas.requestRenderAll();
+      }
+    }
+
+    function updateBatteryCells(obj, numCells) {
+      if (isNaN(numCells) || numCells < 1 || obj.numCells === numCells) return;
+      const newBattery = createBattery(numCells);
+      newBattery.set({
+          left: obj.left,
+          top: obj.top,
+          angle: obj.angle,
+          componentType: 'battery',
+          numCells: numCells,
+          labelText: obj.labelText,
+          labelRef: obj.labelRef,
+          labelId: obj.labelId,
+          prevLeft: obj.prevLeft,
+          prevTop: obj.prevTop
+      });
+      canvas.remove(obj);
+      canvas.add(newBattery);
+      canvas.setActiveObject(newBattery);
+      if (newBattery.labelRef) {
+          newBattery.labelRef.bringToFront();
+      }
+    }
+
+    // Input Listeners
+    document.getElementById('menuLabelInput').addEventListener('focus', () => saveState());
+    document.getElementById('menuLabelInput').addEventListener('input', (e) => {
+        const obj = canvas.getActiveObject();
+        if (obj) {
+            // Update standalone IText directly via the menu
+            if (obj.type === 'i-text') {
+                obj.set('text', e.target.value);
+                canvas.requestRenderAll();
+                
+                // If this label is actively linked to a parent component, sync its data
+                const parent = canvas.getObjects().find(o => o.labelId === obj.id);
+                if (parent) parent.labelText = e.target.value;
+            } else {
+                updateComponentLabel(obj, e.target.value);
+            }
+        }
+    });
+
+    document.getElementById('menuCellsInput').addEventListener('focus', () => saveState());
+    document.getElementById('menuCellsInput').addEventListener('input', (e) => {
+        const obj = canvas.getActiveObject();
+        if (obj && obj.componentType === 'battery') updateBatteryCells(obj, parseInt(e.target.value));
+    });
+
+    function insertSymbol(sym) {
+        const input = document.getElementById('menuLabelInput');
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        const text = input.value;
+        
+        const newText = text.substring(0, start) + sym + text.substring(end);
+        input.value = newText;
+        
+        // Restore cursor position right after the inserted symbol
+        input.focus();
+        input.selectionStart = input.selectionEnd = start + sym.length;
+
+        const obj = canvas.getActiveObject();
+        if (obj) {
+            if (obj.type === 'i-text') {
+                obj.set('text', newText);
+                canvas.requestRenderAll();
+                const parent = canvas.getObjects().find(o => o.labelId === obj.id);
+                if (parent) parent.labelText = newText;
+            } else {
+                updateComponentLabel(obj, newText);
+            }
+        }
+    }
+
+    function addLabel() {
+      if (isDrawingWire) toggleWireMode();
+      if (isErasing) toggleEraserMode();
+      saveState();
+      
+      const vpt = canvas.viewportTransform;
+      const text = new fabric.IText('V₁', {
+        id: generateId(),
+        left: Math.round(((canvas.width / 2) - vpt[4]) / gridSize) * gridSize,
+        top: Math.round(((canvas.height / 2) - vpt[5]) / gridSize) * gridSize - 40,
+        originX: 'center', originY: 'center',
+        fontFamily: 'Times New Roman',
+        fontStyle: 'italic',
+        fontSize: 26,
+        fill: '#000',
+        hasControls: true,
+        editable: false, // Prevents accidental text selection, making it a solid draggable block
+        objectCaching: false
+      });
+      canvas.add(text);
+      canvas.setActiveObject(text);
+      
+      // Automatically show context menu for quick editing right after placing
+      showContextMenu(text);
+    }
+
+    function deleteSelected() {
+      const activeObjs = canvas.getActiveObjects();
+      if (activeObjs.length) {
+        saveState();
+        activeObjs.forEach(obj => { 
+          if (!obj.isEditing) {
+            if (obj.labelRef) canvas.remove(obj.labelRef); // Delete linked label
+            
+            // If deleting a linked label directly, sever its connection with the parent component
+            if (obj.type === 'i-text') {
+                const parent = canvas.getObjects().find(o => o.labelId === obj.id);
+                if (parent) {
+                    parent.labelRef = null;
+                    parent.labelId = null;
+                    parent.labelText = '';
+                }
+            }
+            
+            canvas.remove(obj); 
+          }
+        });
+        canvas.discardActiveObject();
+        canvas.requestRenderAll();
+        hideContextMenu();
+      }
+    }
+
+    function clearCanvas() {
+      // Show the custom modal instead of native confirm()
+      document.getElementById('clearModal').classList.remove('hidden');
+    }
+
+    function cancelClearCanvas() {
+      document.getElementById('clearModal').classList.add('hidden');
+    }
+
+    function confirmClearCanvas() {
+      saveState();
+      canvas.clear();
+      if (isGridVisible) initGrid();
+      document.getElementById('clearModal').classList.add('hidden');
+    }
+
+    function downloadPNG() {
+      // Temporarily remove background to ensure alpha/transparency works
+      const oldBg = canvas.backgroundColor;
+      canvas.setBackgroundColor(null, function() {
+        const dataURL = canvas.toDataURL({
+          format: 'png',
+          multiplier: 4 // Ultra-High Resolution textbook export
+        });
+        
+        // Restore background
+        canvas.setBackgroundColor(oldBg, canvas.renderAll.bind(canvas));
+        
+        // Trigger download
+        const link = document.createElement('a');
+        link.download = 'physics-circuit.png';
+        link.href = dataURL;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+
+    // --- Interactions (Snap & Rotate) ---
+
+    // Enhanced Snapping function - Mathematically forces everything to the exact grid
+    function snapToGrid(obj) {
+      if (obj.type === 'line') {
+          // Lines must snap their mathematical centerline/endpoints instead of relying on their bounding box top/left
+          // Because of strokeWidth: 2, padding: 15, and round caps, adding exactly 16px to the obj's bounding
+          // box corners returns the exact theoretical (x,y) anchor points for orthogonal lines.
+          const exactX = obj.left + 16;
+          const exactY = obj.top + 16;
+          
+          const targetX = Math.round(exactX / gridSize) * gridSize;
+          const targetY = Math.round(exactY / gridSize) * gridSize;
+          
+          obj.set({
+              left: obj.left + (targetX - exactX),
+              top: obj.top + (targetY - exactY)
+          });
+      } else {
+          // Because ALL components now have symmetric invisible rects (e.g. 120x80),
+          // snapping their left/top directly perfectly places their physical center exactly on a grid point.
+          const targetLeft = Math.round(obj.left / gridSize) * gridSize;
+          const targetTop = Math.round(obj.top / gridSize) * gridSize;
+          obj.set({
+              left: targetLeft,
+              top: targetTop
+          });
+      }
+      obj.setCoords(); 
+    }
+
+    // Capture state before a drag or rotation for Undo history
+    let stateBeforeTransform = null;
+    canvas.on('before:transform', function() {
+        stateBeforeTransform = canvas.toJSON(customProps);
+    });
+
+    // Eraser Hover Effects
+    canvas.on('mouse:over', function(e) {
+        if (isErasing && e.target) {
+            e.target.set('opacity', 0.3);
+            canvas.requestRenderAll();
+        }
+    });
+
+    canvas.on('mouse:out', function(e) {
+        if (isErasing && e.target) {
+            e.target.set('opacity', 1);
+            canvas.requestRenderAll();
+        }
+    });
+
+    canvas.on('mouse:down', function(options) {
+        const evt = options.e;
+        
+        // Panning logic: Middle-Click or Alt+Drag
+        if (evt.altKey === true || options.button === 2) {
+            isDraggingCanvas = true;
+            canvas.selection = false;
+            lastPosX = evt.clientX;
+            lastPosY = evt.clientY;
+            hideContextMenu();
+            return;
+        }
+
+        // Right-Click Context Menu Logic
+        if (options.button === 3) {
+            isDraggingCanvas = false;
+            if (options.target && !isDrawingWire && !isErasing) {
+                canvas.setActiveObject(options.target);
+                showContextMenu(options.target);
+            } else {
+                hideContextMenu();
+            }
+            return; // Halt further events on right click
+        }
+
+        // Standard Left Click hides context menu
+        hideContextMenu();
+
+        // Handle Eraser Tool
+        if (isErasing && options.target) {
+            const obj = options.target;
+            obj.set('opacity', 1); // Restore opacity to full before saving state
+            saveState();
+            
+            if (obj.labelRef) canvas.remove(obj.labelRef);
+            canvas.remove(obj);
+            canvas.requestRenderAll();
+            return;
+        }
+        
+        // Track component positions before moving for attached labels
+        if (options.target && options.target.type !== 'i-text') {
+            options.target.prevLeft = options.target.left;
+            options.target.prevTop = options.target.top;
+        }
+    });
+
+    canvas.on('mouse:move', function(options) {
+      if (isDraggingCanvas) return; // Prevent target drag while panning the entire canvas
+      if (!options.target || isDrawingWire) return;
+      
+      const obj = options.target;
+      snapToGrid(obj);
+      
+      // Move linked label relative to component
+      if (obj.labelRef && obj.prevLeft !== undefined) {
+          const dx = obj.left - obj.prevLeft;
+          const dy = obj.top - obj.prevTop;
+          if (dx !== 0 || dy !== 0) {
+              obj.labelRef.set({
+                  left: obj.labelRef.left + dx,
+                  top: obj.labelRef.top + dy
+              });
+              obj.labelRef.setCoords();
+          }
+          obj.prevLeft = obj.left;
+          obj.prevTop = obj.top;
+      }
+      
+      updateContextMenuPosition({target: obj});
+    });
+
+    canvas.on('object:modified', function(options) {
+      if (stateBeforeTransform) {
+          undoStack.push(stateBeforeTransform);
+          if (undoStack.length > 50) undoStack.shift();
+          stateBeforeTransform = null;
+      }
+      snapToGrid(options.target);
+    });
+
+    canvas.on('mouse:dblclick', function(e) {
+      // Rotate Logic on double-click
+      if (e.target && e.target.type === 'group') {
+        saveState();
+        let currentAngle = e.target.angle || 0;
+        e.target.set({ angle: currentAngle + 90 });
+        e.target.setCoords(); // Required prior to manual snap to ensure accurate unpadded coordinates
+        snapToGrid(e.target);
+        canvas.requestRenderAll();
+      }
+    });
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      // Do not trigger canvas deletion if user is typing inside a text input field
+      const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+      if (activeTag === 'input' || activeTag === 'textarea') {
+          return;
+      }
+
+      // Undo Shortcut
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+          e.preventDefault();
+          undo();
+          return;
+      }
+
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        deleteSelected();
+      }
+    });
+
+    // --- Eraser Tool ---
+    function toggleEraserMode() {
+      isErasing = !isErasing;
+      const btn = document.getElementById('eraserToolBtn');
+      const container = document.getElementById('canvas-container');
+      
+      if (isDrawingWire && isErasing) toggleWireMode();
+      
+      if (isErasing) {
+        btn.classList.add('btn-active');
+        container.classList.add('erasing-mode');
+        canvas.discardActiveObject();
+        canvas.selection = false;
+        canvas.forEachObject(obj => obj.set('selectable', false).set('evented', true));
+      } else {
+        btn.classList.remove('btn-active');
+        container.classList.remove('erasing-mode');
+        canvas.selection = true;
+        canvas.forEachObject(obj => obj.set('selectable', true));
+      }
+      canvas.requestRenderAll();
+    }
+
+    // --- Orthogonal Wire Drawing Tool ---
+    let startPoint = null;
+    let stateBeforeWire = null;
+
+    function toggleWireMode() {
+      isDrawingWire = !isDrawingWire;
+      const btn = document.getElementById('wireToolBtn');
+      const container = document.getElementById('canvas-container');
+      
+      if (isErasing && isDrawingWire) toggleEraserMode();
+      
+      if (isDrawingWire) {
+        btn.classList.add('btn-active');
+        container.classList.add('drawing-wire');
+        canvas.discardActiveObject();
+        canvas.selection = false;
+        canvas.forEachObject(obj => obj.set('evented', false));
+      } else {
+        btn.classList.remove('btn-active');
+        container.classList.remove('drawing-wire');
+        canvas.selection = true;
+        canvas.forEachObject(obj => obj.set('evented', true));
+        if(currentWire) {
+          canvas.remove(currentWire);
+          currentWire = null;
+        }
+      }
+      canvas.requestRenderAll();
+    }
+
+    canvas.on('mouse:down', function(o) {
+      if (isDraggingCanvas) return;
+      if (isErasing) return;
+      if (!isDrawingWire) return;
+      if (o.button === 3) return; // Ignore right-clicks while drawing lines
+      
+      stateBeforeWire = canvas.toJSON(customProps); // Capture before wire added
+      
+      const pointer = canvas.getPointer(o.e);
+      // Snap start point to nearest grid dot perfectly
+      const x = Math.round(pointer.x / gridSize) * gridSize;
+      const y = Math.round(pointer.y / gridSize) * gridSize;
+
+      startPoint = { x, y };
+
+      currentWire = new fabric.Line([x, y, x, y], {
+        strokeWidth: 2,
+        fill: '#000',
+        stroke: '#000',
+        strokeLineCap: 'round', // Bridges perfectly without any visual pixel gaps/notches
+        strokeLineJoin: 'round',
+        padding: 15,            // Drastically expands the hit detection/erasure radius
+        hasControls: false,     // Prevents strange scaling logic by restricting users to dragging
+        selectable: false,
+        evented: false
+      });
+      canvas.add(currentWire);
+    });
+
+    canvas.on('mouse:move', function(o) {
+      if (isDraggingCanvas) {
+          const e = o.e;
+          const vpt = canvas.viewportTransform;
+          vpt[4] += e.clientX - lastPosX;
+          vpt[5] += e.clientY - lastPosY;
+
+          if (gridPattern) {
+              gridPattern.offsetX = vpt[4] % gridSize;
+              gridPattern.offsetY = vpt[5] % gridSize;
+          }
+
+          canvas.requestRenderAll();
+          lastPosX = e.clientX;
+          lastPosY = e.clientY;
+          return;
+      }
+
+      if (isErasing) return;
+      if (!isDrawingWire || !currentWire || !startPoint) return;
+      const pointer = canvas.getPointer(o.e);
+      let x = Math.round(pointer.x / gridSize) * gridSize;
+      let y = Math.round(pointer.y / gridSize) * gridSize;
+
+      // Force Orthogonal Behavior (Straight Right Angles)
+      const dx = Math.abs(x - startPoint.x);
+      const dy = Math.abs(y - startPoint.y);
+      if (dx > dy) {
+         y = startPoint.y; // Force horizontal lock
+      } else {
+         x = startPoint.x; // Force vertical lock
+      }
+
+      currentWire.set({ x2: x, y2: y });
+      canvas.requestRenderAll();
+    });
+
+    canvas.on('mouse:up', function(o) {
+      if (isDraggingCanvas) {
+          canvas.setViewportTransform(canvas.viewportTransform);
+          isDraggingCanvas = false;
+          if (!isDrawingWire && !isErasing) canvas.selection = true;
+          return;
+      }
+
+      if (isErasing) return;
+      if (!isDrawingWire || !currentWire) return;
+      if (o.button === 3) return;
+      
+      // If line is too short (just a click), remove it
+      if (currentWire.x1 === currentWire.x2 && currentWire.y1 === currentWire.y2) {
+         canvas.remove(currentWire);
+      } else {
+         currentWire.setCoords();
+         currentWire.set({ selectable: true, evented: !isDrawingWire }); 
+         
+         // Commit undo state if a valid wire was drawn
+         if (stateBeforeWire) {
+             undoStack.push(stateBeforeWire);
+             if (undoStack.length > 50) undoStack.shift();
+         }
+      }
+      
+      currentWire = null;
+      startPoint = null;
+      stateBeforeWire = null;
+    });
+
+    // Run Once
+    window.onload = () => {
+      resizeCanvas();
+      initGrid();
+    };
+
+  </script>
+</body>
+</html>

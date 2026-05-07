@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhysicsTools – Teacher Resources by SimLabs</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary:  '#2E1065',
+            secondary:'#84CC16',
+            bg:       '#F8FAFC',
+            surface:  '#FFFFFF',
+            sub1:     '#64748B',
+            accent:   '#8B5CF6',
+            alert:    '#EA580C',
+            success:  '#14B8A6',
+          },
+          fontFamily: {
+            heading: ['Lexend', 'sans-serif'],
+            body:    ['Atkinson Hyperlegible', 'sans-serif'],
+            mono:    ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;900&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap');
+
+    html { scroll-behavior: smooth; }
+
+    /* ── Tactile button ─────────────────────────── */
+    .btn-tactile {
+      border: 2px solid #2E1065;
+      background-color: #FFFFFF;
+      color: #2E1065;
+      box-shadow: 4px 4px 0px #2E1065;
+      transition: all 0.1s ease;
+      font-weight: 700;
+      padding: 0.7rem 1.4rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.875rem;
+      line-height: 1;
+      user-select: none;
+    }
+    .btn-tactile:hover  { transform: translate(-2px,-2px); box-shadow: 6px 6px 0px #2E1065; }
+    .btn-tactile:active { transform: translate(2px,2px);   box-shadow: 0px 0px 0px #2E1065; }
+    .btn-primary { background-color: #84CC16; }
+    .btn-dark    { background-color: #2E1065; color: #FFFFFF; box-shadow: 4px 4px 0px #84CC16; }
+    .btn-dark:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0px #84CC16; }
+
+    /* ── Cards ──────────────────────────────────── */
+    .card-tactile {
+      background: white;
+      border: 2px solid #2E1065;
+      box-shadow: 6px 6px 0px #CBD5E1;
+      border-radius: 16px;
+    }
+    .tool-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .tool-card:hover { transform: translate(-3px,-3px); box-shadow: 9px 9px 0px #CBD5E1; }
+
+    /* ── Backgrounds ────────────────────────────── */
+    .hero-bg {
+      background-color: #3D1280;
+      background-image:
+        radial-gradient(circle at 68% 40%, rgba(139,92,246,0.28) 0%, transparent 55%),
+        radial-gradient(circle at 15% 80%, rgba(132,204,22,0.08) 0%, transparent 40%),
+        radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
+      background-size: auto, auto, 24px 24px;
+    }
+    /* hero accent line */
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent 0%, #84CC16 30%, #8B5CF6 70%, transparent 100%);
+      opacity: 0.6;
+    }
+    .dark-section {
+      background-color: #2E1065;
+      background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* ── Hero-specific button overrides ────────── */
+    .btn-hero-primary {
+      background-color: #84CC16;
+      border: 2px solid #fff;
+      color: #1a0840;
+      box-shadow: 4px 4px 0px #fff, 0 0 24px rgba(132,204,22,0.35);
+      font-size: 1rem;
+      padding: 0.85rem 1.75rem;
+    }
+    .btn-hero-primary:hover {
+      transform: translate(-2px,-2px);
+      box-shadow: 6px 6px 0px #fff, 0 0 32px rgba(132,204,22,0.5);
+    }
+    .btn-hero-primary:active { transform: translate(2px,2px); box-shadow: 0 0 0 #fff; }
+
+    .btn-hero-secondary {
+      background-color: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.6);
+      color: #fff;
+      box-shadow: 4px 4px 0px rgba(255,255,255,0.25);
+      font-size: 1rem;
+      padding: 0.85rem 1.75rem;
+      backdrop-filter: blur(4px);
+    }
+    .btn-hero-secondary:hover {
+      transform: translate(-2px,-2px);
+      background-color: rgba(255,255,255,0.18);
+      box-shadow: 6px 6px 0px rgba(255,255,255,0.35);
+    }
+    .btn-hero-secondary:active { transform: translate(2px,2px); box-shadow: 0 0 0 transparent; }
+
+    /* ── SimLabs nav button ─────────────────────── */
+    .btn-simlabs {
+      border: 2px solid #2E1065;
+      background: linear-gradient(135deg, #2E1065 0%, #4C1D95 100%);
+      color: #84CC16;
+      box-shadow: 3px 3px 0px #84CC16;
+      transition: all 0.1s ease;
+      font-weight: 700;
+      padding: 0.45rem 1rem;
+      border-radius: 0.65rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.8rem;
+      line-height: 1;
+    }
+    .btn-simlabs:hover  { transform: translate(-1px,-1px); box-shadow: 5px 5px 0px #84CC16; }
+    .btn-simlabs:active { transform: translate(2px,2px);   box-shadow: 0 0 0 #84CC16; }
+
+    /* ── Misc ───────────────────────────────────── */
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #64748B;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      border: 2px solid currentColor; border-radius: 100px;
+      padding: 2px 10px; font-size: 0.7rem; font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .feature-pill {
+      font-size: 0.65rem; font-weight: 700;
+      background: rgba(46,16,101,0.05);
+      border: 1px solid rgba(46,16,101,0.15);
+      border-radius: 100px; padding: 2px 10px;
+      color: #2E1065; font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Coming Soon stamp overlay ──────────────── */
+    .coming-soon-wrap { position: relative; overflow: hidden; }
+    .coming-soon-blur {
+      position: absolute; inset: 0; z-index: 1;
+      backdrop-filter: blur(4px);
+      background: rgba(248,250,252,0.35);
+    }
+    .coming-soon-stamp {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-18deg);
+      z-index: 2;
+      border: 4px solid #DC2626;
+      border-radius: 6px;
+      color: #DC2626;
+      font-family: 'Lexend', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      padding: 8px 20px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      opacity: 0.88;
+      box-shadow: inset 0 0 0 2px rgba(220,38,38,0.2);
+    }
+    /* disable hover on coming soon */
+    .coming-soon-card { pointer-events: none; }
+
+    /* ── Hero floating UI mock ───────────────────── */
+    @keyframes float {
+      0%,100% { transform: translateY(0px); }
+      50%      { transform: translateY(-8px); }
+    }
+    .float-anim { animation: float 4s ease-in-out infinite; }
+    @keyframes float2 {
+      0%,100% { transform: translateY(0px); }
+      50%      { transform: translateY(-5px); }
+    }
+    .float-anim2 { animation: float2 3.5s ease-in-out infinite 0.5s; }
+  </style>
+</head>
+
+<body class="bg-bg font-body text-primary">
+
+  <!-- ═══════════════════════════════════════
+       NAVIGATION
+  ═══════════════════════════════════════ -->
+  <nav class="bg-white border-b-2 border-primary sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+
+      <a href="#" class="flex items-center gap-3 no-underline" onclick="scrollTo({top:0,behavior:'smooth'}); return false;">
+        <div class="w-9 h-9 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5" stroke="#84CC16" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+          </svg>
+        </div>
+        <div class="leading-none">
+          <div class="font-heading font-black text-lg text-primary">PhysicsTools</div>
+          <div class="text-[10px] font-mono text-sub1 mt-0.5">by <span class="text-secondary font-bold">SimLabs</span></div>
+        </div>
+      </a>
+
+      <div class="flex items-center gap-4">
+        <a href="#tools" class="text-sm font-bold text-primary hover:text-accent transition-colors hidden sm:block nav-link">Tools</a>
+        <a href="#about" class="text-sm font-bold text-primary hover:text-accent transition-colors hidden sm:block nav-link">About</a>
+        <a href="https://simlabs.co.za" target="_blank" rel="noopener" class="btn-simlabs hidden sm:inline-flex">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
+            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/>
+          </svg>
+          SimLabs
+        </a>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════
+       HERO
+  ═══════════════════════════════════════ -->
+  <section class="hero-bg relative overflow-hidden min-h-[560px] flex items-center">
+
+    <!-- Decorative shapes -->
+    <div class="absolute top-8 right-40 w-64 h-64 border border-secondary/10 rounded-3xl rotate-12 pointer-events-none"></div>
+    <div class="absolute -bottom-10 left-8 w-44 h-44 border border-accent/10 rounded-2xl -rotate-6 pointer-events-none"></div>
+    <div class="absolute top-1/3 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto px-6 py-16 w-full">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+        <!-- Left: copy -->
+        <div>
+          <div class="inline-flex items-center gap-2 bg-secondary/15 border border-secondary/25 text-secondary rounded-full px-4 py-1.5 text-xs font-mono font-bold mb-7">
+            <span class="w-1.5 h-1.5 bg-secondary rounded-full animate-pulse inline-block"></span>
+            Free for all teachers &mdash; no account needed
+          </div>
+
+          <h1 class="font-heading font-black text-5xl sm:text-6xl text-white leading-[1.05] tracking-tight mb-3">
+            Build Better<br/>
+            <span class="text-secondary">Physics Exams</span><br/>
+            Faster.
+          </h1>
+
+          <!-- Powered by SimLabs -->
+          <div class="flex items-center gap-2 mb-6">
+            <div class="h-px w-8 bg-secondary/40"></div>
+            <a href="https://simlabs.co.za" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-1.5 text-white/50 hover:text-secondary transition-colors text-xs font-mono font-bold tracking-widest uppercase">
+              Powered by
+              <span class="text-secondary font-black">SimLabs</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 opacity-60"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+            </a>
+            <div class="h-px w-8 bg-secondary/40"></div>
+          </div>
+
+          <p class="text-white/65 text-lg leading-relaxed mb-9 max-w-md">
+            Professional interactive tools for physics teachers. Textbook-standard diagrams, exam-ready exports — right in your browser.
+          </p>
+
+          <div class="flex flex-wrap gap-4">
+            <a href="#tools" class="btn-tactile btn-hero-primary nav-link">
+              Browse All Tools
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <a href="#about" class="btn-tactile btn-hero-secondary nav-link">
+              Learn More
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            </a>
+          </div>
+
+          <!-- Quick stats row -->
+          <div class="flex items-center gap-6 mt-10">
+            <div>
+              <div class="font-heading font-black text-2xl text-secondary">4×</div>
+              <div class="text-white/40 text-xs font-mono">Export Resolution</div>
+            </div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <div>
+              <div class="font-heading font-black text-2xl text-secondary">0</div>
+              <div class="text-white/40 text-xs font-mono">Installs Needed</div>
+            </div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <div>
+              <div class="font-heading font-black text-2xl text-secondary">Free</div>
+              <div class="text-white/40 text-xs font-mono">Forever</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: floating UI mock of CircuitBuilder -->
+        <div class="hidden lg:flex items-center justify-center relative">
+
+          <!-- Main app window mock -->
+          <div class="float-anim w-full max-w-sm rounded-2xl overflow-hidden border-2 border-white/15 shadow-[0_32px_80px_rgba(0,0,0,0.5)]">
+
+            <!-- Window chrome -->
+            <div class="bg-[#1a0840] px-4 py-2.5 flex items-center gap-2 border-b border-white/10">
+              <div class="w-2.5 h-2.5 rounded-full bg-alert/70"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-secondary/50"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-success/50"></div>
+              <span class="ml-3 font-mono text-[10px] text-white/30 tracking-wide">CircuitBuilder — PhysicsTools</span>
+            </div>
+
+            <!-- App layout -->
+            <div class="flex" style="height:240px;">
+
+              <!-- Mini sidebar -->
+              <div class="w-16 bg-white border-r-2 border-[#2E1065] flex flex-col items-center py-2 gap-1.5 flex-shrink-0">
+                <div class="text-[7px] font-black text-[#2E1065] font-heading leading-none text-center px-1 mb-1">Circuit<br/>Builder</div>
+                <!-- Component buttons -->
+                <div class="w-12 h-8 border border-[#2E1065]/40 rounded-md flex items-center justify-center">
+                  <svg viewBox="0 0 60 20" class="w-8 h-4" fill="none" stroke="#2E1065" stroke-width="3" stroke-linecap="round"><path d="M0 10h15v-7h30v14h-30v-7M45 10h15"/></svg>
+                </div>
+                <div class="w-12 h-8 border border-[#2E1065]/40 rounded-md flex items-center justify-center">
+                  <svg viewBox="0 0 60 30" class="w-8 h-5" fill="none" stroke="#2E1065" stroke-width="3" stroke-linecap="round"><path d="M0 15h25M35 15h25M25 0v30M35 7v16" stroke-linecap="round"/><path d="M35 7v16" stroke-width="6" stroke-linecap="round"/></svg>
+                </div>
+                <div class="w-12 h-8 border border-[#2E1065]/40 rounded-md flex items-center justify-center">
+                  <svg viewBox="0 0 60 30" class="w-8 h-5" fill="none" stroke="#2E1065" stroke-width="3" stroke-linecap="round"><path d="M0 20h15M40 20h20M15 20L35 5"/><circle cx="15" cy="20" r="3" fill="#2E1065"/><circle cx="40" cy="20" r="3" fill="#2E1065"/></svg>
+                </div>
+                <div class="w-12 h-8 border border-[#84CC16] rounded-md flex items-center justify-center bg-[#84CC16]/10">
+                  <svg viewBox="0 0 60 30" class="w-8 h-5" fill="none" stroke="#2E1065" stroke-width="3"><path d="M0 15h18M42 15h18"/><circle cx="30" cy="15" r="12" fill="white" stroke="#2E1065" stroke-width="2"/><path d="M22 7l16 16M22 23l16-16" stroke-linecap="round"/></svg>
+                </div>
+                <div class="w-12 h-8 border border-[#2E1065]/40 rounded-md flex items-center justify-center">
+                  <svg viewBox="0 0 60 30" class="w-8 h-5" fill="none" stroke="#2E1065" stroke-width="3"><path d="M0 15h18M42 15h18"/><circle cx="30" cy="15" r="12" fill="white" stroke="#2E1065" stroke-width="2"/><text x="30" y="21" text-anchor="middle" font-size="14" font-weight="bold" fill="#2E1065" stroke-width="1">A</text></svg>
+                </div>
+                <div class="w-12 h-8 border border-[#2E1065]/40 rounded-md flex items-center justify-center">
+                  <svg viewBox="0 0 60 30" class="w-8 h-5" fill="none" stroke="#2E1065" stroke-width="3"><path d="M0 15h18M42 15h18"/><circle cx="30" cy="15" r="12" fill="white" stroke="#2E1065" stroke-width="2"/><text x="30" y="21" text-anchor="middle" font-size="14" font-weight="bold" fill="#2E1065" stroke-width="1">V</text></svg>
+                </div>
+              </div>
+
+              <!-- Canvas area with grid and circuit -->
+              <div class="flex-1 relative overflow-hidden" style="background-color:#F8FAFC;">
+                <!-- Floating top toolbar mock -->
+                <div class="absolute top-2 left-1/2 -translate-x-1/2 bg-white/90 border border-[#2E1065]/30 rounded-xl px-2 py-1 flex items-center gap-1.5 z-10 shadow-sm">
+                  <div class="text-[8px] font-bold text-[#2E1065] px-1.5 py-0.5 border border-[#2E1065]/30 rounded-md">Draw Wire</div>
+                  <div class="text-[8px] font-bold text-[#2E1065] px-1.5 py-0.5 border border-[#2E1065]/30 rounded-md">Eraser</div>
+                  <div class="w-px h-3 bg-[#2E1065]/15"></div>
+                  <div class="text-[8px] font-bold text-[#84CC16] px-1.5 py-0.5 border border-[#2E1065] rounded-md bg-[#84CC16]/20">Export</div>
+                </div>
+
+                <!-- Grid + circuit SVG -->
+                <svg viewBox="0 0 260 200" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="mockgrid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                      <circle cx="0" cy="0" r="1.2" fill="#94A3B8" opacity="0.5"/>
+                    </pattern>
+                  </defs>
+                  <rect width="260" height="200" fill="url(#mockgrid)"/>
+
+                  <!-- Circuit: top horizontal wire -->
+                  <line x1="40" y1="60" x2="220" y2="60" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+                  <!-- Circuit: bottom horizontal wire -->
+                  <line x1="40" y1="140" x2="220" y2="140" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+                  <!-- Left vertical wire -->
+                  <line x1="40" y1="60" x2="40" y2="140" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+                  <!-- Right vertical segments -->
+                  <line x1="220" y1="60" x2="220" y2="80" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="220" y1="120" x2="220" y2="140" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+
+                  <!-- Resistor on top -->
+                  <line x1="80"  y1="60" x2="100" y2="60" stroke="#000" stroke-width="2"/>
+                  <rect x="100" y="53" width="60" height="14" rx="1" fill="white" stroke="#000" stroke-width="2"/>
+                  <line x1="160" y1="60" x2="180" y2="60" stroke="#000" stroke-width="2"/>
+                  <text x="130" y="47" text-anchor="middle" font-family="Times New Roman" font-style="italic" font-size="12" fill="#000">R₁</text>
+
+                  <!-- Cell on left side -->
+                  <line x1="40" y1="85"  x2="40" y2="92"  stroke="#000" stroke-width="2"/>
+                  <line x1="30" y1="92"  x2="50" y2="92"  stroke="#000" stroke-width="2.5"/>
+                  <line x1="33" y1="100" x2="47" y2="100" stroke="#000" stroke-width="5"/>
+                  <line x1="40" y1="100" x2="40" y2="110" stroke="#000" stroke-width="2"/>
+                  <text x="55" y="98" font-family="Times New Roman" font-style="italic" font-size="10" fill="#000">ε</text>
+
+                  <!-- Lightbulb on right -->
+                  <circle cx="220" cy="100" r="13" fill="white" stroke="#000" stroke-width="2"/>
+                  <line x1="213" y1="93" x2="227" y2="107" stroke="#000" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="227" y1="93" x2="213" y2="107" stroke="#000" stroke-width="1.8" stroke-linecap="round"/>
+                  <text x="234" y="104" font-family="Times New Roman" font-style="italic" font-size="10" fill="#000">L₁</text>
+
+                  <!-- Switch on bottom -->
+                  <line x1="100" y1="140" x2="120" y2="140" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="120" cy="140" r="2.5" fill="#000"/>
+                  <circle cx="150" cy="140" r="2.5" fill="#000"/>
+                  <line x1="120" y1="140" x2="146" y2="126" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="150" y1="140" x2="175" y2="140" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+
+                  <!-- Ammeter -->
+                  <circle cx="40" cy="60" r="1.5" fill="#84CC16"/>
+                  <circle cx="40" cy="140" r="1.5" fill="#84CC16"/>
+                  <!-- Active selection highlight on lightbulb -->
+                  <rect x="204" y="84" width="32" height="32" rx="3" fill="none" stroke="#84CC16" stroke-width="1.5" stroke-dasharray="3 2"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating badge cards -->
+          <div class="float-anim2 absolute -bottom-2 -left-6 bg-white border-2 border-primary rounded-xl px-3 py-2 shadow-[4px_4px_0px_#2E1065]">
+            <div class="text-[9px] font-mono font-bold text-sub1 mb-0.5">EXPORTED</div>
+            <div class="font-heading font-black text-sm text-primary">physics-circuit.png</div>
+            <div class="text-[9px] text-success font-bold mt-0.5">✓ 4× resolution</div>
+          </div>
+
+          <div class="float-anim absolute -top-3 -right-4 bg-primary border-2 border-secondary rounded-xl px-3 py-2 shadow-[4px_4px_0px_#84CC16]">
+            <div class="text-[9px] font-mono font-bold text-secondary/60 mb-0.5">COMPONENTS</div>
+            <div class="font-heading font-black text-sm text-white">12 Types</div>
+            <div class="text-[9px] text-white/40 mt-0.5">Resistors, cells, meters…</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       FEATURE BAR
+  ═══════════════════════════════════════ -->
+  <div class="bg-white border-b-2 border-primary overflow-x-auto">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center gap-8 min-w-max">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 bg-secondary/15 rounded-lg flex items-center justify-center flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#84CC16" stroke-width="2.5" stroke-linecap="round" class="w-3.5 h-3.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        </div>
+        <span class="text-sm font-bold whitespace-nowrap">Exam-Ready PNG Exports</span>
+      </div>
+      <div class="w-px h-5 bg-primary/10 flex-shrink-0"></div>
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5" stroke-linecap="round" class="w-3.5 h-3.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <span class="text-sm font-bold whitespace-nowrap">Textbook-Standard Diagrams</span>
+      </div>
+      <div class="w-px h-5 bg-primary/10 flex-shrink-0"></div>
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 bg-success/10 rounded-lg flex items-center justify-center flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="2.5" stroke-linecap="round" class="w-3.5 h-3.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <span class="text-sm font-bold whitespace-nowrap">No Installation Required</span>
+      </div>
+      <div class="w-px h-5 bg-primary/10 flex-shrink-0"></div>
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 bg-alert/10 rounded-lg flex items-center justify-center flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2.5" stroke-linecap="round" class="w-3.5 h-3.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
+        <span class="text-sm font-bold whitespace-nowrap">100% Free Forever</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       TOOLS SECTION
+  ═══════════════════════════════════════ -->
+  <section id="tools" class="max-w-6xl mx-auto px-6 py-20">
+
+    <div class="mb-12">
+      <p class="section-label mb-2">// available tools</p>
+      <h2 class="font-heading font-black text-4xl leading-tight">
+        The Teacher's<br/>
+        <span class="text-accent">Physics Toolkit</span>
+      </h2>
+      <p class="text-sub1 mt-3 text-base max-w-xl leading-relaxed">
+        Each tool is built to the DBE-CAPS standard — drop diagrams straight into question papers and worksheets.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- ── CircuitBuilder ─────────────────── -->
+      <div class="card-tactile tool-card overflow-hidden">
+
+        <!-- Preview: realistic UI mockup of actual tool -->
+        <div class="h-52 bg-primary relative overflow-hidden">
+          <svg viewBox="0 0 320 180" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+            <!-- Sidebar background -->
+            <rect x="0" y="0" width="58" height="180" fill="#FFFFFF"/>
+            <rect x="56" y="0" width="2" height="180" fill="#2E1065"/>
+
+            <!-- Sidebar title -->
+            <text x="29" y="14" text-anchor="middle" font-family="Lexend,sans-serif" font-size="6.5" font-weight="900" fill="#2E1065">Circuit</text>
+            <text x="29" y="22" text-anchor="middle" font-family="Lexend,sans-serif" font-size="6.5" font-weight="900" fill="#2E1065">Builder</text>
+            <text x="29" y="30" text-anchor="middle" font-family="Lexend,sans-serif" font-size="5" fill="#64748B">by SimLabs</text>
+
+            <!-- Sidebar component buttons (3×4 grid) -->
+            <!-- Row 1 -->
+            <rect x="5"  y="37" width="14" height="12" rx="2" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <path d="M7 43h3v-2h6v4h-6v-2M16 43h2" stroke="#2E1065" stroke-width="1" fill="none"/>
+            <rect x="22" y="37" width="14" height="12" rx="2" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <path d="M24 43h3v-2h6v4h-6v-2M33 43h2M26 47l5-8" stroke="#2E1065" stroke-width="1" fill="none"/>
+            <rect x="39" y="37" width="14" height="12" rx="2" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <path d="M41 43h6M47 37v12M50 40v6" stroke="#2E1065" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M50 40v6" stroke="#2E1065" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+            <!-- Row 2 -->
+            <rect x="5"  y="53" width="14" height="12" rx="2" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <circle cx="12" cy="59" r="4" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <text x="12" y="62" text-anchor="middle" font-size="5" font-weight="bold" fill="#2E1065" font-family="Arial">A</text>
+            <path d="M5 59h3M21 59h-3" stroke="#2E1065" stroke-width="1" fill="none"/>
+            <rect x="22" y="53" width="14" height="12" rx="2" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <circle cx="29" cy="59" r="4" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <text x="29" y="62" text-anchor="middle" font-size="5" font-weight="bold" fill="#2E1065" font-family="Arial">V</text>
+            <path d="M22 59h3M36 59h-3" stroke="#2E1065" stroke-width="1" fill="none"/>
+            <rect x="39" y="53" width="14" height="12" rx="2" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <circle cx="46" cy="59" r="4" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <line x1="42" y1="55" x2="50" y2="63" stroke="#2E1065" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="50" y1="55" x2="42" y2="63" stroke="#2E1065" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M39 59h3M53 59h-3" stroke="#2E1065" stroke-width="1" fill="none"/>
+
+            <!-- Row 3 -->
+            <rect x="5"  y="69" width="14" height="12" rx="2" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <path d="M5 76h5M16 76h5M10 72v8M13 74v4" stroke="#2E1065" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <path d="M13 74v4" stroke="#2E1065" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <rect x="22" y="69" width="14" height="12" rx="2" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <path d="M22 76h5M31 76h5M28 72v8" stroke="#2E1065" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <path d="M28 72v8" stroke="#2E1065" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M22 76h4.5M32 72v8" stroke="#2E1065" stroke-width="1" fill="none" stroke-linecap="round" stroke-dasharray="2,1"/>
+            <rect x="39" y="69" width="14" height="12" rx="2" fill="white" stroke="#2E1065" stroke-width="1"/>
+            <path d="M39 76h4M47 76h6M44 76L50 70" stroke="#2E1065" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <circle cx="44" cy="76" r="1.5" fill="#2E1065"/>
+            <circle cx="49" cy="76" r="1.5" fill="#2E1065"/>
+
+            <!-- Canvas area background with grid -->
+            <rect x="58" y="0" width="262" height="180" fill="#F8FAFC"/>
+            <defs>
+              <pattern id="cg" x="58" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                <circle cx="0" cy="0" r="1.2" fill="#94A3B8" opacity="0.5"/>
+              </pattern>
+            </defs>
+            <rect x="58" y="0" width="262" height="180" fill="url(#cg)"/>
+
+            <!-- Floating toolbar -->
+            <rect x="110" y="8" width="160" height="18" rx="6" fill="rgba(255,255,255,0.92)" stroke="#2E1065" stroke-width="1" opacity="0.95"/>
+            <text x="128" y="20" font-family="Lexend,sans-serif" font-size="6" font-weight="700" fill="#2E1065">Draw Wire</text>
+            <text x="168" y="20" font-family="Lexend,sans-serif" font-size="6" font-weight="700" fill="#2E1065">Eraser</text>
+            <text x="200" y="20" font-family="Lexend,sans-serif" font-size="6" font-weight="700" fill="#2E1065">Clear</text>
+            <rect x="218" y="9.5" width="45" height="15" rx="4" fill="#84CC16" stroke="#2E1065" stroke-width="1"/>
+            <text x="240.5" y="20" text-anchor="middle" font-family="Lexend,sans-serif" font-size="6" font-weight="900" fill="#2E1065">Export PNG</text>
+
+            <!-- Actual circuit diagram -->
+            <!-- Top wire -->
+            <line x1="80"  y1="65"  x2="295" y2="65"  stroke="#000" stroke-width="2" stroke-linecap="round"/>
+            <!-- Bottom wire -->
+            <line x1="80"  y1="155" x2="295" y2="155" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+            <!-- Left wire -->
+            <line x1="80"  y1="65"  x2="80"  y2="155" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+            <!-- Right wire segments -->
+            <line x1="295" y1="65"  x2="295" y2="88"  stroke="#000" stroke-width="2" stroke-linecap="round"/>
+            <line x1="295" y1="130" x2="295" y2="155" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+
+            <!-- Resistor on top -->
+            <line x1="115" y1="65" x2="135" y2="65" stroke="#000" stroke-width="2"/>
+            <rect x="135" y="59" width="55" height="12" rx="1" fill="white" stroke="#000" stroke-width="1.8"/>
+            <line x1="190" y1="65" x2="210" y2="65" stroke="#000" stroke-width="2"/>
+            <text x="162" y="54" text-anchor="middle" font-family="Times New Roman" font-style="italic" font-size="10" fill="#000">R₁</text>
+
+            <!-- Cell on left -->
+            <line x1="80" y1="95"  x2="80"  y2="102" stroke="#000" stroke-width="2"/>
+            <line x1="72" y1="102" x2="88"  y2="102" stroke="#000" stroke-width="2.5"/>
+            <line x1="74" y1="110" x2="86"  y2="110" stroke="#000" stroke-width="5"/>
+            <line x1="80" y1="110" x2="80"  y2="120" stroke="#000" stroke-width="2"/>
+            <text x="93" y="110" font-family="Times New Roman" font-style="italic" font-size="10" fill="#000">12V</text>
+
+            <!-- Lightbulb on right -->
+            <circle cx="295" cy="109" r="12" fill="white" stroke="#000" stroke-width="2"/>
+            <line x1="288" y1="102" x2="302" y2="116" stroke="#000" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="302" y1="102" x2="288" y2="116" stroke="#000" stroke-width="1.8" stroke-linecap="round"/>
+            <text x="313" y="113" font-family="Times New Roman" font-style="italic" font-size="10" fill="#000">L₁</text>
+
+            <!-- Switch on bottom -->
+            <line x1="140" y1="155" x2="158" y2="155" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="158" cy="155" r="2.5" fill="#000"/>
+            <circle cx="188" cy="155" r="2.5" fill="#000"/>
+            <line x1="158" y1="155" x2="184" y2="142" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+            <line x1="188" y1="155" x2="215" y2="155" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+
+            <!-- Ammeter (inline on top) -->
+            <circle cx="240" cy="65" r="12" fill="white" stroke="#000" stroke-width="1.8"/>
+            <text x="240" y="69" text-anchor="middle" font-family="Times New Roman" font-weight="bold" font-size="11" fill="#000">A</text>
+            <line x1="228" y1="65" x2="215" y2="65" stroke="#000" stroke-width="2"/>
+            <line x1="252" y1="65" x2="265" y2="65" stroke="#000" stroke-width="2"/>
+
+            <!-- Selection box on lightbulb -->
+            <rect x="279" y="93" width="32" height="32" rx="2" fill="none" stroke="#84CC16" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.9"/>
+
+            <!-- Node dot at junction -->
+            <circle cx="80" cy="65" r="3" fill="#000"/>
+          </svg>
+
+          <!-- CIRCUITS badge -->
+          <div class="absolute top-3 right-3 bg-secondary text-primary text-[9px] font-mono font-black px-2 py-1 rounded-md tracking-wide">CIRCUITS</div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6">
+          <div class="flex items-start justify-between mb-2">
+            <h3 class="font-heading font-black text-xl">CircuitBuilder</h3>
+            <span class="badge text-success border-success/40 bg-success/5">
+              <span class="w-1.5 h-1.5 bg-success rounded-full inline-block"></span>
+              Live
+            </span>
+          </div>
+          <p class="text-sub1 text-sm leading-relaxed mb-4">
+            Drag-and-drop circuit diagrams with resistors, cells, switches, ammeters, voltmeters and more. Export 4× high-res PNG for exam papers.
+          </p>
+          <div class="flex flex-wrap gap-1.5 mb-5">
+            <span class="feature-pill">Snap-to-Grid</span>
+            <span class="feature-pill">4× PNG Export</span>
+            <span class="feature-pill">Undo / Redo</span>
+            <span class="feature-pill">Labels</span>
+            <span class="feature-pill">Drag &amp; Drop</span>
+          </div>
+          <a href="tools/CircuitBuilder.html" target="_blank" class="btn-tactile btn-primary w-full justify-center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+            Open Tool
+          </a>
+        </div>
+      </div>
+
+      <!-- ── Organic Molecule Builder ────────── -->
+      <div class="card-tactile coming-soon-card overflow-hidden">
+        <div class="coming-soon-wrap">
+          <div class="coming-soon-blur"></div>
+          <div class="coming-soon-stamp">Coming Soon</div>
+
+          <!-- Preview area -->
+          <div class="h-52 border-b-2 border-primary/10 flex items-center justify-center" style="background:#f0f4ff;">
+            <svg viewBox="0 0 120 100" class="w-32 h-28 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Benzene ring -->
+              <polygon points="60,18 82,31 82,57 60,70 38,57 38,31" fill="none" stroke="#2E1065" stroke-width="2.5" stroke-linejoin="round"/>
+              <!-- Inner dashed ring -->
+              <circle cx="60" cy="44" r="14" fill="none" stroke="#2E1065" stroke-width="1.5" stroke-dasharray="4,2"/>
+              <!-- Substituents -->
+              <line x1="60" y1="18" x2="60" y2="5"   stroke="#2E1065" stroke-width="2" stroke-linecap="round"/>
+              <text x="60" y="4" text-anchor="middle" font-family="Times New Roman" font-size="9" fill="#2E1065" font-weight="bold">OH</text>
+              <line x1="82" y1="31" x2="94" y2="24"  stroke="#2E1065" stroke-width="2" stroke-linecap="round"/>
+              <text x="97" y="24" font-family="Times New Roman" font-size="9" fill="#2E1065">CH₃</text>
+              <line x1="82" y1="57" x2="94" y2="64"  stroke="#2E1065" stroke-width="2" stroke-linecap="round"/>
+              <text x="97" y="67" font-family="Times New Roman" font-size="9" fill="#2E1065">Br</text>
+              <!-- Atom labels at vertices -->
+              <circle cx="60" cy="18" r="3" fill="white" stroke="#2E1065" stroke-width="1.5"/>
+              <circle cx="82" cy="31" r="3" fill="white" stroke="#2E1065" stroke-width="1.5"/>
+              <circle cx="82" cy="57" r="3" fill="white" stroke="#2E1065" stroke-width="1.5"/>
+              <circle cx="60" cy="70" r="3" fill="white" stroke="#2E1065" stroke-width="1.5"/>
+              <circle cx="38" cy="57" r="3" fill="white" stroke="#2E1065" stroke-width="1.5"/>
+              <circle cx="38" cy="31" r="3" fill="white" stroke="#2E1065" stroke-width="1.5"/>
+            </svg>
+          </div>
+
+          <!-- Content -->
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-2">
+              <h3 class="font-heading font-black text-xl">Molecule Builder</h3>
+              <span class="badge text-sub1 border-sub1/30">Coming Soon</span>
+            </div>
+            <p class="text-sub1 text-sm leading-relaxed mb-4">
+              Draw organic molecules using skeletal, structural, and 3D representations. Perfect for chemistry-based exam questions.
+            </p>
+            <div class="flex flex-wrap gap-1.5 mb-5">
+              <span class="feature-pill">Skeletal Formula</span>
+              <span class="feature-pill">Functional Groups</span>
+              <span class="feature-pill">IUPAC Labels</span>
+            </div>
+            <div class="btn-tactile w-full justify-center opacity-50" style="cursor:not-allowed;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Not Yet Available
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Mechanics Builder ────────────────── -->
+      <div class="card-tactile coming-soon-card overflow-hidden">
+        <div class="coming-soon-wrap">
+          <div class="coming-soon-blur"></div>
+          <div class="coming-soon-stamp">Coming Soon</div>
+
+          <!-- Preview area -->
+          <div class="h-52 border-b-2 border-primary/10 flex items-center justify-center" style="background:#f5f0ff;">
+            <svg viewBox="0 0 130 100" class="w-36 h-28 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Inclined plane -->
+              <polygon points="15,80 110,80 110,80 15,40" fill="rgba(46,16,101,0.08)" stroke="#2E1065" stroke-width="2" stroke-linejoin="round"/>
+              <!-- Block on plane -->
+              <rect x="55" y="44" width="24" height="18" rx="2" fill="white" stroke="#2E1065" stroke-width="2" transform="rotate(-21 67 53)"/>
+              <!-- Weight arrow -->
+              <line x1="67" y1="62" x2="67" y2="80" stroke="#EA580C" stroke-width="2" stroke-linecap="round"/>
+              <polygon points="67,83 63,75 71,75" fill="#EA580C"/>
+              <text x="72" y="76" font-family="Times New Roman" font-style="italic" font-size="9" fill="#EA580C">W</text>
+              <!-- Normal force arrow -->
+              <line x1="67" y1="50" x2="57" y2="34" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" transform="rotate(-21 67 50)"/>
+              <polygon points="67,31 62,40 72,40" fill="#14B8A6" transform="rotate(-21 67 50)"/>
+              <text x="45" y="30" font-family="Times New Roman" font-style="italic" font-size="9" fill="#14B8A6">N</text>
+              <!-- Friction arrow -->
+              <line x1="74" y1="55" x2="90" y2="48" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" transform="rotate(-21 74 55)"/>
+              <text x="90" y="42" font-family="Times New Roman" font-style="italic" font-size="9" fill="#8B5CF6">f</text>
+              <!-- Angle arc -->
+              <path d="M 95 80 A 18 18 0 0 0 110 62" stroke="#2E1065" stroke-width="1.5" fill="none"/>
+              <text x="98" y="70" font-family="Times New Roman" font-style="italic" font-size="9" fill="#2E1065">θ</text>
+            </svg>
+          </div>
+
+          <!-- Content -->
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-2">
+              <h3 class="font-heading font-black text-xl">Mechanics Builder</h3>
+              <span class="badge text-sub1 border-sub1/30">Coming Soon</span>
+            </div>
+            <p class="text-sub1 text-sm leading-relaxed mb-4">
+              Create free-body diagrams, inclined plane problems, and force vector diagrams with labelled arrows and angles.
+            </p>
+            <div class="flex flex-wrap gap-1.5 mb-5">
+              <span class="feature-pill">Free-Body Diagrams</span>
+              <span class="feature-pill">Force Vectors</span>
+              <span class="feature-pill">Angle Labels</span>
+            </div>
+            <div class="btn-tactile w-full justify-center opacity-50" style="cursor:not-allowed;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Not Yet Available
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       HOW IT WORKS
+  ═══════════════════════════════════════ -->
+  <section class="bg-white border-y-2 border-primary">
+    <div class="max-w-6xl mx-auto px-6 py-20">
+      <div class="text-center mb-14">
+        <p class="section-label mb-2">// how it works</p>
+        <h2 class="font-heading font-black text-4xl leading-tight">
+          From blank canvas to<br/>
+          <span class="text-secondary">exam-ready in minutes</span>
+        </h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-[4px_4px_0px_#84CC16]">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#84CC16" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </div>
+          <div class="font-mono text-xs text-sub1 mb-2 font-bold tracking-wide">STEP 01</div>
+          <h3 class="font-heading font-black text-xl mb-2">Open a Tool</h3>
+          <p class="text-sub1 text-sm leading-relaxed">Click any live tool — no login, no download. It opens immediately in your browser.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-[4px_4px_0px_#8B5CF6]">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+          <div class="font-mono text-xs text-sub1 mb-2 font-bold tracking-wide">STEP 02</div>
+          <h3 class="font-heading font-black text-xl mb-2">Build Your Diagram</h3>
+          <p class="text-sub1 text-sm leading-relaxed">Drag components, draw wires, add labels. Everything snaps to grid for perfect alignment.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-[4px_4px_0px_#14B8A6]">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          </div>
+          <div class="font-mono text-xs text-sub1 mb-2 font-bold tracking-wide">STEP 03</div>
+          <h3 class="font-heading font-black text-xl mb-2">Export &amp; Use</h3>
+          <p class="text-sub1 text-sm leading-relaxed">Hit Export PNG for a sharp 4× image ready to drop into Word, Google Docs, or any layout software.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       ABOUT
+  ═══════════════════════════════════════ -->
+  <section id="about" class="dark-section border-y-2 border-primary relative overflow-hidden">
+    <div class="max-w-6xl mx-auto px-6 py-20 relative">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <p class="section-label text-secondary/50 mb-3">// about physicstools</p>
+          <h2 class="font-heading font-black text-4xl text-white leading-tight mb-6">
+            Made for Teachers,<br/>
+            <span class="text-secondary">Built by SimLabs</span>
+          </h2>
+          <p class="text-white/65 leading-relaxed mb-4 text-base">
+            PhysicsTools is a free, browser-based platform developed by <strong class="text-secondary">SimLabs</strong> to give physics educators professional-grade tools — without the price tag or the software install.
+          </p>
+          <p class="text-white/65 leading-relaxed mb-8 text-base">
+            Every tool is designed to the DBE-CAPS standard, so diagrams look exactly like what students see in past papers.
+          </p>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+              <div class="font-heading font-black text-4xl text-secondary leading-none mb-1">100%</div>
+              <div class="text-white/50 text-sm">Free to use, always</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+              <div class="font-heading font-black text-4xl text-secondary leading-none mb-1">0</div>
+              <div class="text-white/50 text-sm">Software installs needed</div>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex gap-4">
+            <div class="w-11 h-11 bg-secondary/20 rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#84CC16" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+            </div>
+            <div>
+              <h3 class="font-heading font-bold text-white mb-1">DBE-CAPS Standard</h3>
+              <p class="text-white/50 text-sm leading-relaxed">Circuit symbols and notation match the DBE-CAPS standard used in South African physics examinations.</p>
+            </div>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex gap-4">
+            <div class="w-11 h-11 bg-accent/20 rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <div>
+              <h3 class="font-heading font-bold text-white mb-1">Instant Load</h3>
+              <p class="text-white/50 text-sm leading-relaxed">No login, no loading screen. Open a tool and start working in under three seconds.</p>
+            </div>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex gap-4">
+            <div class="w-11 h-11 bg-success/20 rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            </div>
+            <div>
+              <h3 class="font-heading font-bold text-white mb-1">4× High-Res Export</h3>
+              <p class="text-white/50 text-sm leading-relaxed">Diagrams export at 4× resolution — sharp when printed or embedded in a PDF.</p>
+            </div>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex gap-4">
+            <div class="w-11 h-11 bg-alert/20 rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <h3 class="font-heading font-bold text-white mb-1">Growing Toolkit</h3>
+              <p class="text-white/50 text-sm leading-relaxed">Molecule Builder and Mechanics Builder are in development. New tools ship regularly.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       CTA BANNER
+  ═══════════════════════════════════════ -->
+  <section class="max-w-6xl mx-auto px-6 py-16">
+    <div class="card-tactile p-10 flex flex-col md:flex-row items-center justify-between gap-8"
+         style="background:linear-gradient(135deg,#2E1065 0%,#4C1D95 100%); border-color:#2E1065; box-shadow:8px 8px 0px #84CC16;">
+      <div>
+        <h2 class="font-heading font-black text-3xl text-white mb-2">Ready to build your first circuit?</h2>
+        <p class="text-white/60 text-base">Open CircuitBuilder and have a diagram ready to export in under two minutes.</p>
+      </div>
+      <a href="tools/CircuitBuilder.html" target="_blank" class="btn-tactile btn-primary flex-shrink-0 text-base py-3 px-6">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+        Open CircuitBuilder
+      </a>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       SIMLABS SECTION
+  ═══════════════════════════════════════ -->
+  <section class="bg-white border-y-2 border-primary">
+    <div class="max-w-6xl mx-auto px-6 py-20">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+        <!-- Left: branding block -->
+        <div>
+          <!-- SimLabs logo mark -->
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[4px_4px_0px_#84CC16]"
+                 style="background:linear-gradient(135deg,#2E1065 0%,#4C1D95 100%); border: 2px solid #2E1065;">
+              <svg viewBox="0 0 24 24" fill="none" class="w-7 h-7" stroke="#84CC16" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-heading font-black text-3xl text-primary leading-none">SimLabs</div>
+              <div class="text-xs font-mono text-sub1 mt-1 tracking-widest uppercase">simlabs.co.za</div>
+            </div>
+          </div>
+
+          <p class="section-label mb-3">// the team behind physicstools</p>
+          <h2 class="font-heading font-black text-4xl text-primary leading-tight mb-5">
+            Science tools built<br/>
+            <span class="text-accent">for the classroom</span>
+          </h2>
+          <p class="text-sub1 text-base leading-relaxed mb-4">
+            SimLabs is a South African edtech company building free, accessible tools for science and maths educators. We believe every teacher — regardless of resources — deserves professional-grade software.
+          </p>
+          <p class="text-sub1 text-base leading-relaxed mb-8">
+            PhysicsTools is one of several platforms we maintain. Visit our main site to explore the full range of simulations, resources, and tools.
+          </p>
+
+          <a href="https://simlabs.co.za" target="_blank" rel="noopener" class="btn-tactile btn-primary text-base py-3 px-6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+            Visit SimLabs
+          </a>
+        </div>
+
+        <!-- Right: feature cards -->
+        <div class="space-y-4">
+
+          <div class="card-tactile p-5 flex gap-4 items-start">
+            <div class="w-11 h-11 bg-secondary/15 border-2 border-secondary/30 rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#84CC16" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-heading font-bold text-primary text-base mb-1">Free & Open Access</h3>
+              <p class="text-sub1 text-sm leading-relaxed">All SimLabs tools are free for teachers and students — no paywalls, no subscriptions, no tracking.</p>
+            </div>
+          </div>
+
+          <div class="card-tactile p-5 flex gap-4 items-start">
+            <div class="w-11 h-11 bg-accent/10 border-2 border-accent/25 rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-heading font-bold text-primary text-base mb-1">More Simulations</h3>
+              <p class="text-sub1 text-sm leading-relaxed">The full SimLabs platform includes interactive simulations across physics, chemistry, and mathematics.</p>
+            </div>
+          </div>
+
+          <div class="card-tactile p-5 flex gap-4 items-start">
+            <div class="w-11 h-11 bg-success/10 border-2 border-success/25 rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-heading font-bold text-primary text-base mb-1">Built for SA Classrooms</h3>
+              <p class="text-sub1 text-sm leading-relaxed">Designed with the South African CAPS curriculum in mind, and used by teachers across the country.</p>
+            </div>
+          </div>
+
+          <!-- CTA link card -->
+          <a href="https://simlabs.co.za" target="_blank" rel="noopener"
+             class="block card-tactile p-5 flex items-center justify-between group hover:-translate-y-1 transition-transform"
+             style="background:linear-gradient(135deg,#2E1065 0%,#4C1D95 100%);">
+            <div>
+              <div class="font-heading font-black text-white text-lg leading-none">simlabs.co.za</div>
+              <div class="text-secondary/70 text-xs font-mono mt-1">Explore all tools →</div>
+            </div>
+            <div class="w-10 h-10 bg-secondary/20 rounded-xl flex items-center justify-center group-hover:bg-secondary/30 transition-colors">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#84CC16" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════ -->
+  <footer class="bg-white border-t-2 border-primary">
+    <div class="max-w-6xl mx-auto px-6 py-10">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
+            <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5" stroke="#84CC16" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+            </svg>
+          </div>
+          <div class="leading-none">
+            <div class="font-heading font-black text-base text-primary">PhysicsTools</div>
+            <div class="text-[10px] font-mono text-sub1 mt-0.5">Powered by <span class="text-secondary font-bold">SimLabs</span></div>
+          </div>
+        </div>
+        <p class="text-sub1 text-sm text-center">Free for teachers. Built with care by <strong class="text-primary">SimLabs</strong>.</p>
+        <div class="flex items-center gap-6">
+          <a href="#tools" class="text-sm font-bold text-sub1 hover:text-primary transition-colors nav-link">Tools</a>
+          <a href="#about" class="text-sm font-bold text-sub1 hover:text-primary transition-colors nav-link">About</a>
+          <a href="tools/CircuitBuilder.html" target="_blank" class="text-sm font-bold text-sub1 hover:text-primary transition-colors">CircuitBuilder</a>
+          <a href="https://simlabs.co.za" target="_blank" rel="noopener" class="text-sm font-bold text-secondary hover:text-primary transition-colors">SimLabs ↗</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ═══════════════════════════════════════
+       SCROLL LOGIC — fixes all anchor links
+  ═══════════════════════════════════════ -->
+  <script>
+    document.querySelectorAll('a.nav-link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (href && href.startsWith('#')) {
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if (target) {
+            const navH = document.querySelector('nav').offsetHeight;
+            const top = target.getBoundingClientRect().top + window.pageYOffset - navH - 16;
+            window.scrollTo({ top, behavior: 'smooth' });
+          }
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
