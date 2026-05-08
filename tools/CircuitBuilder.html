@@ -623,9 +623,47 @@
 
     // --- Context Menu & Label Logic ---
     
+    function updateContextMenuPosition(e) {
+      const obj = e.target;
+      const menu = document.getElementById('contextMenu');
+      if (menu.classList.contains('hidden')) return;
+
+      const boundingRect = obj.getBoundingRect();
+      const containerOffset = document.getElementById('canvas-container').getBoundingClientRect();
+      
+      let left = boundingRect.left + boundingRect.width + 15;
+      let top = boundingRect.top;
+
+      // Prevent menu from overflowing right edge (menu is approx 256px wide)
+      if (left + 260 > containerOffset.width) {
+          left = boundingRect.left - 275;
+      }
+      
+      // Prevent menu from overflowing bottom edge
+      const menuRect = menu.getBoundingClientRect();
+      const menuHeight = menuRect.height || 200;
+      if (top + menuHeight + 15 > containerOffset.height) {
+          top = containerOffset.height - menuHeight - 15;
+      }
+      
+      // Safety boundaries
+      if (top < 15) top = 15;
+      if (left < 15) left = 15;
+      
+      menu.style.left = `${left}px`;
+      menu.style.top = `${top}px`;
+    }
+    
     function showContextMenu(obj) {
       if (!obj || isDrawingWire) return; // Allow i-text to be right clicked now
 
+      const menu = document.getElementById('contextMenu');
+      
+      // Make the menu visible FIRST so position calculation rules aren't completely ignored
+      menu.classList.remove('hidden');
+      menu.classList.add('flex');
+
+      // Now update the position perfectly
       updateContextMenuPosition({target: obj});
 
       const labelInput = document.getElementById('menuLabelInput');
@@ -646,10 +684,6 @@
           batterySettings.classList.add('hidden');
           batterySettings.classList.remove('flex');
       }
-
-      const menu = document.getElementById('contextMenu');
-      menu.classList.remove('hidden');
-      menu.classList.add('flex');
       
       // Automatically focus the input for fast typing
       setTimeout(() => labelInput.focus(), 10);
@@ -659,26 +693,6 @@
       const menu = document.getElementById('contextMenu');
       menu.classList.add('hidden');
       menu.classList.remove('flex');
-    }
-
-    function updateContextMenuPosition(e) {
-      const obj = e.target;
-      const menu = document.getElementById('contextMenu');
-      if (menu.classList.contains('hidden')) return;
-
-      const boundingRect = obj.getBoundingRect();
-      const containerOffset = document.getElementById('canvas-container').getBoundingClientRect();
-      
-      let left = boundingRect.left + boundingRect.width + 15;
-      let top = boundingRect.top;
-
-      // Prevent menu from overflowing right edge
-      if (left + 224 > containerOffset.width) {
-          left = boundingRect.left - 240;
-      }
-      
-      menu.style.left = `${left}px`;
-      menu.style.top = `${top}px`;
     }
 
     function updateComponentLabel(obj, text) {
