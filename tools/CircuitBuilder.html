@@ -441,7 +441,7 @@
           // Positive plate
           objects.push(new fabric.Line([currX, -15, currX, 15], { stroke: '#000', strokeWidth: 2 }));
           // Negative plate
-          objects.push(new line([currX + cellW, -10, currX + cellW, 10], { stroke: '#000', strokeWidth: 4 }));
+          objects.push(new fabric.Line([currX + cellW, -10, currX + cellW, 10], { stroke: '#000', strokeWidth: 4 }));
           
           if (i < numCells - 1) {
              // Dashed wire connector
@@ -531,7 +531,7 @@
         new fabric.Text('r', { left: 30, top: -20, originX: 'center', originY: 'center', fontSize: 16, fontFamily: 'Times New Roman', fontStyle: 'italic', objectCaching: false }),
         new fabric.Text('ε', { left: -35, top: -22, originX: 'center', originY: 'center', fontSize: 18, fontFamily: 'Times New Roman', fontStyle: 'italic', objectCaching: false }),
         new fabric.Line([50, 0, 80, 0], { stroke: '#000', strokeWidth: 2 })
-      ], { originX: 'center', originY: 'center', hasControls: false, padding: 0 });
+      ], { originX: 'center', originY: 'center', hasControls: false, padding: 0, objectCaching: false });
     }
 
     function createNode() {
@@ -881,14 +881,15 @@
 
     // --- Interactions (Snap & Rotate) ---
 
-    // Enhanced Snapping function - Mathematically forces everything to the exact grid
+    // PERFECTED MATHEMATICAL GRID SNAPPING 
     function snapToGrid(obj) {
       if (obj.type === 'line') {
           // Lines must snap their mathematical centerline/endpoints instead of relying on their bounding box top/left
-          // Because of strokeWidth: 2, padding: 15, and round caps, adding exactly 16px to the obj's bounding
-          // box corners returns the exact theoretical (x,y) anchor points for orthogonal lines.
-          const exactX = obj.left + 16;
-          const exactY = obj.top + 16;
+          // For a line with strokeWidth: 2, Fabric's physical `left` is math X minus (strokeWidth/2).
+          // Therefore, exactX = obj.left + (strokeWidth/2) returns us to the true mathematical coordinate without tearing!
+          const strokeOffset = obj.strokeWidth / 2 || 1;
+          const exactX = obj.left + strokeOffset;
+          const exactY = obj.top + strokeOffset;
           
           const targetX = Math.round(exactX / gridSize) * gridSize;
           const targetY = Math.round(exactY / gridSize) * gridSize;
@@ -1017,7 +1018,18 @@
       if (e.target && e.target.type === 'group') {
         saveState();
         let currentAngle = e.target.angle || 0;
-        e.target.set({ angle: currentAngle + 90 });
+        let newAngle = currentAngle + 90;
+        e.target.set({ angle: newAngle });
+        
+        // Keep Voltmeter and Ammeter text upright
+        if (e.target.componentType === 'ammeter' || e.target.componentType === 'voltmeter') {
+            const innerText = e.target.getObjects().find(o => o.type === 'text');
+            if (innerText) {
+                innerText.set({ angle: -newAngle });
+                e.target.set('dirty', true);
+            }
+        }
+        
         e.target.setCoords(); // Required prior to manual snap to ensure accurate unpadded coordinates
         snapToGrid(e.target);
         canvas.requestRenderAll();
