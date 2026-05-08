@@ -381,14 +381,15 @@
 
     // --- Component Factories (Textbook Standard) ---
     // All components are designed on an internal coordinate system to guarantee perfect alignment.
-    // By using a uniform 120x80 invisible background rect for EVERY component, we guarantee
-    // that the mathematical geometric center is EXACTLY symmetrical and aligned perfectly at Y=0.
+    // By using a uniform SQUARE invisible background rect for EVERY component (e.g., 120x120 or 160x160), 
+    // we guarantee that the geometric center is EXACTLY symmetrical. Furthermore, square bounding boxes 
+    // are mathematically invariant under 90-degree rotations, completely eliminating all snap misalignments!
     
     const defaultGroupConfig = { originX: 'center', originY: 'center', hasControls: false, padding: 0, objectCaching: false };
 
     function createResistor() {
       return new fabric.Group([
-        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }), // Perfect geometric anchor
+        new fabric.Rect({ left: -60, top: -60, width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }), // Perfect square anchor
         new fabric.Line([-60, 0, -30, 0], { stroke: '#000', strokeWidth: 2 }),
         new fabric.Rect({ left: -30, top: -10, width: 60, height: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
         new fabric.Line([30, 0, 60, 0], { stroke: '#000', strokeWidth: 2 })
@@ -397,7 +398,7 @@
 
     function createRheostat() {
       return new fabric.Group([
-        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Rect({ left: -60, top: -60, width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
         new fabric.Line([-60, 0, -30, 0], { stroke: '#000', strokeWidth: 2 }),
         new fabric.Rect({ left: -30, top: -10, width: 60, height: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
         new fabric.Line([30, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
@@ -414,7 +415,7 @@
 
     function createCell() {
       return new fabric.Group([
-        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Rect({ left: -60, top: -60, width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
         new fabric.Line([-60, 0, -5, 0], { stroke: '#000', strokeWidth: 2 }), // Wire L
         new fabric.Line([-5, -15, -5, 15], { stroke: '#000', strokeWidth: 2 }), // Positive
         new fabric.Line([5, -10, 5, 10], { stroke: '#000', strokeWidth: 4 }),  // Negative
@@ -424,7 +425,7 @@
 
     function createBattery(numCells = 2) {
       const objects = [
-        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 })
+        new fabric.Rect({ left: -60, top: -60, width: 120, height: 120, fill: 'transparent', strokeWidth: 0 })
       ];
       
       const cellW = 10;
@@ -458,7 +459,7 @@
 
     function createAC() {
       return new fabric.Group([
-        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Rect({ left: -60, top: -60, width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
         new fabric.Circle({ left: -20, top: -20, radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
         new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
         new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
@@ -468,7 +469,7 @@
 
     function createAmmeter() {
       return new fabric.Group([
-        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Rect({ left: -60, top: -60, width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
         new fabric.Circle({ left: -20, top: -20, radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
         new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
         new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
@@ -478,7 +479,7 @@
 
     function createVoltmeter() {
       return new fabric.Group([
-        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Rect({ left: -60, top: -60, width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
         new fabric.Circle({ left: -20, top: -20, radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
         new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
         new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
@@ -488,7 +489,7 @@
 
     function createLightbulb() {
       return new fabric.Group([
-        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Rect({ left: -60, top: -60, width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
         new fabric.Circle({ left: -20, top: -20, radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
         new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
         new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
@@ -499,7 +500,7 @@
 
     function createSwitch() {
       return new fabric.Group([
-        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Rect({ left: -60, top: -60, width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
         new fabric.Line([-60, 0, -15, 0], { stroke: '#000', strokeWidth: 2 }),
         new fabric.Circle({ left: -17, top: -2, radius: 2, fill: '#000' }),
         new fabric.Circle({ left: 13, top: -2, radius: 2, fill: '#000' }),
@@ -510,7 +511,7 @@
 
     function createSwitchClosed() {
       return new fabric.Group([
-        new fabric.Rect({ left: -60, top: -40, width: 120, height: 80, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Rect({ left: -60, top: -60, width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
         new fabric.Line([-60, 0, -15, 0], { stroke: '#000', strokeWidth: 2 }),
         new fabric.Circle({ left: -17, top: -2, radius: 2, fill: '#000' }),
         new fabric.Circle({ left: 13, top: -2, radius: 2, fill: '#000' }),
@@ -521,7 +522,7 @@
 
     function createRealBattery() {
       return new fabric.Group([
-        new fabric.Rect({ left: -80, top: -40, width: 160, height: 80, fill: 'transparent', strokeWidth: 0 }), // 160x80 container
+        new fabric.Rect({ left: -80, top: -80, width: 160, height: 160, fill: 'transparent', strokeWidth: 0 }), // 160x160 anchor guarantees perfect symmetry
         new fabric.Rect({ left: -60, top: -30, width: 120, height: 60, fill: 'transparent', stroke: '#000', strokeWidth: 1.5, strokeDashArray: [5, 5] }),
         new fabric.Line([-80, 0, -40, 0], { stroke: '#000', strokeWidth: 2 }),
         new fabric.Line([-40, -15, -40, 15], { stroke: '#000', strokeWidth: 2 }),
