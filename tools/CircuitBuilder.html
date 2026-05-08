@@ -884,7 +884,25 @@
 
     // PERFECTED MATHEMATICAL GRID SNAPPING 
     function snapToGrid(obj) {
-      if (obj.type === 'line') {
+      if (!obj) return;
+      
+      if (obj.type === 'activeSelection') {
+          // For drag-box selections, snap the movement delta to the grid, preserving exact internal relative layout
+          if (obj.origLeft === undefined || obj.origTop === undefined) {
+              obj.origLeft = obj.left;
+              obj.origTop = obj.top;
+          }
+          const deltaX = obj.left - obj.origLeft;
+          const deltaY = obj.top - obj.origTop;
+          
+          const snapDeltaX = Math.round(deltaX / gridSize) * gridSize;
+          const snapDeltaY = Math.round(deltaY / gridSize) * gridSize;
+          
+          obj.set({
+              left: obj.origLeft + snapDeltaX,
+              top: obj.origTop + snapDeltaY
+          });
+      } else if (obj.type === 'line') {
           // Lines must snap their mathematical centerline/endpoints instead of relying on their bounding box top/left
           // For a line with strokeWidth: 2, Fabric's physical `left` is math X minus (strokeWidth/2).
           // Therefore, exactX = obj.left + (strokeWidth/2) returns us to the true mathematical coordinate without tearing!
@@ -900,7 +918,7 @@
               top: obj.top + (targetY - exactY)
           });
       } else {
-          // Because ALL components now have symmetric invisible rects (e.g. 120x80),
+          // Because ALL components now have symmetric invisible rects (e.g. 120x120),
           // snapping their left/top directly perfectly places their physical center exactly on a grid point.
           const targetLeft = Math.round(obj.left / gridSize) * gridSize;
           const targetTop = Math.round(obj.top / gridSize) * gridSize;
@@ -916,6 +934,21 @@
     let stateBeforeTransform = null;
     canvas.on('before:transform', function() {
         stateBeforeTransform = canvas.toJSON(customProps);
+    });
+
+    // Capture precise starting coordinates for Group Selection block-snapping
+    canvas.on('selection:created', function(e) {
+        if (e.target && e.target.type === 'activeSelection') {
+            e.target.origLeft = e.target.left;
+            e.target.origTop = e.target.top;
+        }
+    });
+
+    canvas.on('selection:updated', function(e) {
+        if (e.target && e.target.type === 'activeSelection') {
+            e.target.origLeft = e.target.left;
+            e.target.origTop = e.target.top;
+        }
     });
 
     // Eraser Hover Effects
@@ -980,11 +1013,11 @@
         }
     });
 
-    canvas.on('mouse:move', function(options) {
-      if (isDraggingCanvas) return; // Prevent target drag while panning the entire canvas
-      if (!options.target || isDrawingWire) return;
-      
+    // Handle Active Object Dragging Logic (Replaces the broken mouse:move hover bug)
+    canvas.on('object:moving', function(options) {
       const obj = options.target;
+      if (!obj) return;
+      
       snapToGrid(obj);
       
       // Move linked label relative to component
@@ -1139,6 +1172,7 @@
       canvas.add(currentWire);
     });
 
+    // Independent hover logic for Panning and Wire drawing
     canvas.on('mouse:move', function(o) {
       if (isDraggingCanvas) {
           const e = o.e;
