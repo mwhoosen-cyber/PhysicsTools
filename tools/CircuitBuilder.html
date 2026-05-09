@@ -268,7 +268,7 @@
     
     <!-- Version Label -->
     <div class="absolute bottom-2 right-3 text-xs font-mono font-bold text-sub1/50 pointer-events-none select-none z-50">
-      v1.01
+      v1.04
     </div>
   </main>
 
@@ -313,7 +313,7 @@
     
     // --- Undo History Tracking ---
     let undoStack = [];
-    const customProps = ['id', 'componentType', 'numCells', 'labelText', 'labelId', 'prevLeft', 'prevTop'];
+    const customProps = ['id', 'componentType', 'numCells', 'labelText', 'labelId', 'prevLeft', 'prevTop', 'isWire'];
 
     function generateId() {
         return Math.random().toString(36).substr(2, 9);
@@ -385,52 +385,50 @@
     fabric.Object.prototype.objectCaching = false; 
 
     // --- Component Factories (Textbook Standard) ---
-    // By using a uniform SQUARE invisible background rect (e.g., 120x120 or 160x160)
-    // and strictly centering ALL internal sub-objects via originX/Y='center', we 
-    // mathematically guarantee perfectly aligned rotation and grid snapping, eliminating "steps".
+    // ULTIMATE FABRIC BOUNDS FIX (V1.03):
+    // 1. Used 1% opacity invisible anchor to permanently lock geometric rotation bounds to 120x120.
+    // 2. Replaced ALL `fabric.Line` instances used for component terminals with solid 2px `fabric.Rect` objects.
+    //    FabricJS has a known bug where `fabric.Line` calculates its bounding box differently upon rotation, resulting 
+    //    in exactly a 1px visual offset. Rectangles bypass this and remain mathematically flawless at 90 degrees.
     
     const defaultGroupConfig = { originX: 'center', originY: 'center', hasControls: false, padding: 0, objectCaching: false };
+    
+    // Invisible Anchors guarantee group size never shifts upon rotation recalculations
+    const invisibleAnchor = () => new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 120, fill: 'rgba(255,255,255,0.01)', strokeWidth: 0 });
+    const invisibleAnchorLarge = () => new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 160, height: 160, fill: 'rgba(255,255,255,0.01)', strokeWidth: 0 });
 
     function createResistor() {
       return new fabric.Group([
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }), // Perfect square anchor
-        new fabric.Line([-60, 0, -30, 0], { stroke: '#000', strokeWidth: 2 }),
+        invisibleAnchor(),
+        new fabric.Rect({ left: -45, top: 0, originX: 'center', originY: 'center', width: 30, height: 2, fill: '#000', strokeWidth: 0 }),
         new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 60, height: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([30, 0, 60, 0], { stroke: '#000', strokeWidth: 2 })
+        new fabric.Rect({ left: 45, top: 0, originX: 'center', originY: 'center', width: 30, height: 2, fill: '#000', strokeWidth: 0 })
       ], defaultGroupConfig);
     }
 
     function createRheostat() {
       return new fabric.Group([
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
-        new fabric.Line([-60, 0, -30, 0], { stroke: '#000', strokeWidth: 2 }),
+        invisibleAnchor(),
+        new fabric.Rect({ left: -45, top: 0, originX: 'center', originY: 'center', width: 30, height: 2, fill: '#000', strokeWidth: 0 }),
         new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 60, height: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([30, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([-20, 15, 20, -15], { stroke: '#000', strokeWidth: 2 }), // Diagonal strike-through
-        new fabric.Triangle({
-          left: 20, top: -15,
-          width: 10, height: 12,
-          fill: '#000',
-          originX: 'center', originY: 'top',
-          angle: 53.13 // Mathematically aligns with the diagonal line slope
-        })
+        new fabric.Rect({ left: 45, top: 0, originX: 'center', originY: 'center', width: 30, height: 2, fill: '#000', strokeWidth: 0 }),
+        new fabric.Line([-20, 15, 20, -15], { stroke: '#000', strokeWidth: 2, originX: 'center', originY: 'center' }), // Safe as diagonal line
+        new fabric.Triangle({ left: 20, top: -15, width: 10, height: 12, fill: '#000', originX: 'center', originY: 'top', angle: 53.13 })
       ], defaultGroupConfig);
     }
 
     function createCell() {
       return new fabric.Group([
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
-        new fabric.Line([-60, 0, -5, 0], { stroke: '#000', strokeWidth: 2 }), // Wire L
-        new fabric.Line([-5, -15, -5, 15], { stroke: '#000', strokeWidth: 2 }), // Positive
-        new fabric.Line([5, -10, 5, 10], { stroke: '#000', strokeWidth: 4 }),  // Negative
-        new fabric.Line([5, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }) // Wire R
+        invisibleAnchor(),
+        new fabric.Rect({ left: -32.5, top: 0, originX: 'center', originY: 'center', width: 55, height: 2, fill: '#000', strokeWidth: 0 }), // Wire L
+        new fabric.Rect({ left: -5, top: 0, originX: 'center', originY: 'center', width: 2, height: 30, fill: '#000', strokeWidth: 0 }), // Positive
+        new fabric.Rect({ left: 5, top: 0, originX: 'center', originY: 'center', width: 4, height: 20, fill: '#000', strokeWidth: 0 }), // Negative
+        new fabric.Rect({ left: 32.5, top: 0, originX: 'center', originY: 'center', width: 55, height: 2, fill: '#000', strokeWidth: 0 }) // Wire R
       ], defaultGroupConfig);
     }
 
     function createBattery(numCells = 2) {
-      const objects = [
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 120, fill: 'transparent', strokeWidth: 0 })
-      ];
+      const objects = [invisibleAnchor()];
       
       const cellW = 10;
       const spaceW = 10;
@@ -438,22 +436,20 @@
       const totalW = (numCells * step) - spaceW; // Total visual width of the core elements
       const startX = -totalW / 2;
       
-      // Starting Wire
-      objects.push(new fabric.Line([-60, 0, startX, 0], { stroke: '#000', strokeWidth: 2 }));
+      // Starting Wire (Using Rect)
+      objects.push(new fabric.Rect({ left: (-60 + startX) / 2, top: 0, originX: 'center', originY: 'center', width: startX + 60, height: 2, fill: '#000', strokeWidth: 0 }));
       
       let currX = startX;
       for(let i = 0; i < numCells; i++) {
-          // Positive plate
-          objects.push(new fabric.Line([currX, -15, currX, 15], { stroke: '#000', strokeWidth: 2 }));
-          // Negative plate
-          objects.push(new fabric.Line([currX + cellW, -10, currX + cellW, 10], { stroke: '#000', strokeWidth: 4 }));
+          objects.push(new fabric.Rect({ left: currX, top: 0, originX: 'center', originY: 'center', width: 2, height: 30, fill: '#000', strokeWidth: 0 })); // Positive
+          objects.push(new fabric.Rect({ left: currX + cellW, top: 0, originX: 'center', originY: 'center', width: 4, height: 20, fill: '#000', strokeWidth: 0 })); // Negative
           
           if (i < numCells - 1) {
              // Dashed wire connector
-             objects.push(new fabric.Line([currX + cellW, 0, currX + step, 0], { stroke: '#000', strokeWidth: 2, strokeDashArray: [3, 3] }));
+             objects.push(new fabric.Line([currX + cellW, 0, currX + step, 0], { stroke: '#000', strokeWidth: 2, strokeDashArray: [3, 3], originX: 'center', originY: 'center' }));
           } else {
-             // Final tail wire
-             objects.push(new fabric.Line([currX + cellW, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }));
+             // Final tail wire (Using Rect)
+             objects.push(new fabric.Rect({ left: (currX + cellW + 60) / 2, top: 0, originX: 'center', originY: 'center', width: 60 - (currX + cellW), height: 2, fill: '#000', strokeWidth: 0 }));
           }
           currX += step;
       }
@@ -463,86 +459,85 @@
 
     function createAC() {
       return new fabric.Group([
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
+        invisibleAnchor(),
+        new fabric.Rect({ left: -40, top: 0, originX: 'center', originY: 'center', width: 40, height: 2, fill: '#000', strokeWidth: 0 }),
         new fabric.Circle({ left: 0, top: 0, originX: 'center', originY: 'center', radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
-        new fabric.Path('M -10 0 Q -5 -10 0 0 T 10 0', { left: -10, top: -5, fill: 'transparent', stroke: '#000', strokeWidth: 2 })
+        new fabric.Rect({ left: 40, top: 0, originX: 'center', originY: 'center', width: 40, height: 2, fill: '#000', strokeWidth: 0 }),
+        new fabric.Path('M -10 0 Q -5 -10 0 0 T 10 0', { left: 0, top: 0, originX: 'center', originY: 'center', fill: 'transparent', stroke: '#000', strokeWidth: 2 })
       ], defaultGroupConfig);
     }
 
     function createAmmeter() {
       return new fabric.Group([
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
+        invisibleAnchor(),
+        new fabric.Rect({ left: -40, top: 0, originX: 'center', originY: 'center', width: 40, height: 2, fill: '#000', strokeWidth: 0 }),
         new fabric.Circle({ left: 0, top: 0, originX: 'center', originY: 'center', radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Rect({ left: 40, top: 0, originX: 'center', originY: 'center', width: 40, height: 2, fill: '#000', strokeWidth: 0 }),
         new fabric.Text('A', { left: 0, top: 0, originX: 'center', originY: 'center', fontSize: 22, fontFamily: 'Times New Roman', objectCaching: false })
       ], defaultGroupConfig);
     }
 
     function createVoltmeter() {
       return new fabric.Group([
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
+        invisibleAnchor(),
+        new fabric.Rect({ left: -40, top: 0, originX: 'center', originY: 'center', width: 40, height: 2, fill: '#000', strokeWidth: 0 }),
         new fabric.Circle({ left: 0, top: 0, originX: 'center', originY: 'center', radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
+        new fabric.Rect({ left: 40, top: 0, originX: 'center', originY: 'center', width: 40, height: 2, fill: '#000', strokeWidth: 0 }),
         new fabric.Text('V', { left: 0, top: 0, originX: 'center', originY: 'center', fontSize: 22, fontFamily: 'Times New Roman', objectCaching: false })
       ], defaultGroupConfig);
     }
 
     function createLightbulb() {
       return new fabric.Group([
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
+        invisibleAnchor(),
+        new fabric.Rect({ left: -40, top: 0, originX: 'center', originY: 'center', width: 40, height: 2, fill: '#000', strokeWidth: 0 }),
         new fabric.Circle({ left: 0, top: 0, originX: 'center', originY: 'center', radius: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([-60, 0, -20, 0], { stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([20, 0, 60, 0], { stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([-14, -14, 14, 14], { stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([-14, 14, 14, -14], { stroke: '#000', strokeWidth: 2 })
+        new fabric.Rect({ left: 40, top: 0, originX: 'center', originY: 'center', width: 40, height: 2, fill: '#000', strokeWidth: 0 }),
+        new fabric.Line([-14, -14, 14, 14], { stroke: '#000', strokeWidth: 2, originX: 'center', originY: 'center' }),
+        new fabric.Line([-14, 14, 14, -14], { stroke: '#000', strokeWidth: 2, originX: 'center', originY: 'center' })
       ], defaultGroupConfig);
     }
 
     function createSwitch() {
       return new fabric.Group([
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
-        new fabric.Line([-60, 0, -15, 0], { stroke: '#000', strokeWidth: 2 }),
+        invisibleAnchor(),
+        new fabric.Rect({ left: -37.5, top: 0, originX: 'center', originY: 'center', width: 45, height: 2, fill: '#000', strokeWidth: 0 }),
         new fabric.Circle({ left: -15, top: 0, originX: 'center', originY: 'center', radius: 2, fill: '#000' }),
         new fabric.Circle({ left: 15, top: 0, originX: 'center', originY: 'center', radius: 2, fill: '#000' }),
-        new fabric.Line([-15, 0, 10, -15], { stroke: '#000', strokeWidth: 2 }), // Blade open
-        new fabric.Line([15, 0, 60, 0], { stroke: '#000', strokeWidth: 2 })
+        new fabric.Line([-15, 0, 10, -15], { stroke: '#000', strokeWidth: 2, originX: 'center', originY: 'center' }), // Blade open
+        new fabric.Rect({ left: 37.5, top: 0, originX: 'center', originY: 'center', width: 45, height: 2, fill: '#000', strokeWidth: 0 })
       ], defaultGroupConfig);
     }
 
     function createSwitchClosed() {
       return new fabric.Group([
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 120, fill: 'transparent', strokeWidth: 0 }),
-        new fabric.Line([-60, 0, -15, 0], { stroke: '#000', strokeWidth: 2 }),
+        invisibleAnchor(),
+        new fabric.Rect({ left: -37.5, top: 0, originX: 'center', originY: 'center', width: 45, height: 2, fill: '#000', strokeWidth: 0 }),
         new fabric.Circle({ left: -15, top: 0, originX: 'center', originY: 'center', radius: 2, fill: '#000' }),
         new fabric.Circle({ left: 15, top: 0, originX: 'center', originY: 'center', radius: 2, fill: '#000' }),
-        new fabric.Line([-15, 0, 15, 0], { stroke: '#000', strokeWidth: 2 }), // Blade closed
-        new fabric.Line([15, 0, 60, 0], { stroke: '#000', strokeWidth: 2 })
+        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 30, height: 2, fill: '#000', strokeWidth: 0 }), // Blade closed
+        new fabric.Rect({ left: 37.5, top: 0, originX: 'center', originY: 'center', width: 45, height: 2, fill: '#000', strokeWidth: 0 })
       ], defaultGroupConfig);
     }
 
     function createRealBattery() {
       return new fabric.Group([
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 160, height: 160, fill: 'transparent', strokeWidth: 0 }), // 160x160 anchor guarantees perfect symmetry
+        invisibleAnchorLarge(), 
         new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 120, height: 60, fill: 'transparent', stroke: '#000', strokeWidth: 1.5, strokeDashArray: [5, 5] }),
-        new fabric.Line([-80, 0, -40, 0], { stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([-40, -15, -40, 15], { stroke: '#000', strokeWidth: 2 }),
-        new fabric.Line([-30, -10, -30, 10], { stroke: '#000', strokeWidth: 4 }),
-        new fabric.Line([-30, 0, 10, 0], { stroke: '#000', strokeWidth: 2 }),
-        new fabric.Rect({ left: 30, top: 0, originX: 'center', originY: 'center', width: 40, height: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }),
+        new fabric.Rect({ left: -60, top: 0, originX: 'center', originY: 'center', width: 40, height: 2, fill: '#000', strokeWidth: 0 }), 
+        new fabric.Rect({ left: -40, top: 0, originX: 'center', originY: 'center', width: 2, height: 30, fill: '#000', strokeWidth: 0 }), 
+        new fabric.Rect({ left: -30, top: 0, originX: 'center', originY: 'center', width: 4, height: 20, fill: '#000', strokeWidth: 0 }), 
+        new fabric.Rect({ left: -10, top: 0, originX: 'center', originY: 'center', width: 40, height: 2, fill: '#000', strokeWidth: 0 }), 
+        new fabric.Rect({ left: 30, top: 0, originX: 'center', originY: 'center', width: 40, height: 20, fill: 'white', stroke: '#000', strokeWidth: 2 }), 
         new fabric.Text('r', { left: 30, top: -20, originX: 'center', originY: 'center', fontSize: 16, fontFamily: 'Times New Roman', fontStyle: 'italic', objectCaching: false }),
         new fabric.Text('ε', { left: -35, top: -22, originX: 'center', originY: 'center', fontSize: 18, fontFamily: 'Times New Roman', fontStyle: 'italic', objectCaching: false }),
-        new fabric.Line([50, 0, 80, 0], { stroke: '#000', strokeWidth: 2 })
-      ], { originX: 'center', originY: 'center', hasControls: false, padding: 0, objectCaching: false });
+        new fabric.Rect({ left: 65, top: 0, originX: 'center', originY: 'center', width: 30, height: 2, fill: '#000', strokeWidth: 0 }) 
+      ], defaultGroupConfig);
     }
 
     function createNode() {
       return new fabric.Group([
-        // Enlarged invisible bounding rect specifically to make the node much easier to click/erase
-        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 40, height: 40, fill: 'transparent', strokeWidth: 0 }),
+        new fabric.Rect({ left: 0, top: 0, originX: 'center', originY: 'center', width: 40, height: 40, fill: 'rgba(255,255,255,0.01)', strokeWidth: 0 }),
         new fabric.Circle({ left: 0, top: 0, originX: 'center', originY: 'center', radius: 4, fill: '#000' })
       ], defaultGroupConfig);
     }
@@ -900,12 +895,13 @@
 
     // --- Interactions (Snap & Rotate) ---
 
-    // PERFECTED MATHEMATICAL GRID SNAPPING 
+    // PERFECTED MATHEMATICAL GRID SNAPPING
     function snapToGrid(obj) {
       if (!obj) return;
       
-      if (obj.type === 'activeSelection') {
-          // For drag-box selections, snap the movement delta to the grid, preserving exact internal relative layout
+      if (obj.type === 'activeSelection' || obj.isWire) {
+          // Delta-Snapping: Instead of recalculating bounding boxes, we force the object to only move 
+          // in strict 20px intervals from its mathematically flawless starting coordinates!
           if (obj.origLeft === undefined || obj.origTop === undefined) {
               obj.origLeft = obj.left;
               obj.origTop = obj.top;
@@ -920,22 +916,8 @@
               left: obj.origLeft + snapDeltaX,
               top: obj.origTop + snapDeltaY
           });
-      } else if (obj.type === 'line') {
-          // Lines must snap their mathematical centerline/endpoints instead of relying on their bounding box top/left
-          const strokeOffset = obj.strokeWidth / 2 || 1;
-          const exactX = obj.left + strokeOffset;
-          const exactY = obj.top + strokeOffset;
-          
-          const targetX = Math.round(exactX / gridSize) * gridSize;
-          const targetY = Math.round(exactY / gridSize) * gridSize;
-          
-          obj.set({
-              left: obj.left + (targetX - exactX),
-              top: obj.top + (targetY - exactY)
-          });
       } else {
-          // Because ALL components now have symmetric invisible rects (e.g. 120x120),
-          // snapping their left/top directly perfectly places their physical center exactly on a grid point.
+          // Because ALL components use originX/Y 'center', their top/left coordinates ARE their absolute center.
           const targetLeft = Math.round(obj.left / gridSize) * gridSize;
           const targetTop = Math.round(obj.top / gridSize) * gridSize;
           obj.set({
@@ -985,6 +967,16 @@
     canvas.on('mouse:down', function(options) {
         const evt = options.e;
         
+        // Setup Delta-Snapping Anchors before ANY drag begins
+        if (options.target && options.target.type !== 'i-text') {
+            options.target.prevLeft = options.target.left;
+            options.target.prevTop = options.target.top;
+            
+            // Critical: Anchor must be set at rest state before moving
+            options.target.origLeft = options.target.left;
+            options.target.origTop = options.target.top;
+        }
+
         // Panning logic: Middle-Click or Alt+Drag
         if (evt.altKey === true || options.button === 2) {
             isDraggingCanvas = true;
@@ -1021,12 +1013,6 @@
             canvas.requestRenderAll();
             return;
         }
-        
-        // Track component positions before moving for attached labels
-        if (options.target && options.target.type !== 'i-text') {
-            options.target.prevLeft = options.target.left;
-            options.target.prevTop = options.target.top;
-        }
     });
 
     // Handle Active Object Dragging Logic
@@ -1062,8 +1048,8 @@
       }
       snapToGrid(options.target);
       
-      // Reset the orig anchor for consecutive drags of the exact same active group selection
-      if (options.target && options.target.type === 'activeSelection') {
+      // Reset the orig anchor for consecutive drags of the exact same active selection
+      if (options.target) {
           options.target.origLeft = options.target.left;
           options.target.origTop = options.target.top;
       }
@@ -1180,16 +1166,20 @@
 
       startPoint = { x, y };
 
-      currentWire = new fabric.Line([x, y, x, y], {
-        strokeWidth: 2,
+      // FIX: Replace buggy fabric.Line with a mathematically centered fabric.Rect
+      currentWire = new fabric.Rect({
+        left: x,
+        top: y,
+        width: 2,
+        height: 2,
         fill: '#000',
-        stroke: '#000',
-        strokeLineCap: 'round', // Bridges perfectly without any visual pixel gaps/notches
-        strokeLineJoin: 'round',
-        padding: 5,             // Vastly reduced padding so components aren't accidentally obstructed!
-        hasControls: false,     // Prevents strange scaling logic by restricting users to dragging
+        padding: 5,             
+        hasControls: false,     
         selectable: true,       
-        evented: false
+        evented: false,
+        originX: 'center',
+        originY: 'center',
+        isWire: true // explicitly flag this line to use delta grid snapping
       });
       canvas.add(currentWire);
     });
@@ -1224,11 +1214,17 @@
       const dy = Math.abs(y - startPoint.y);
       if (dx > dy) {
          y = startPoint.y; // Force horizontal lock
+         const midX = (x + startPoint.x) / 2;
+         const width = Math.abs(x - startPoint.x) + 2; 
+         currentWire.set({ left: midX, top: y, width: width, height: 2 });
       } else {
          x = startPoint.x; // Force vertical lock
+         const midY = (y + startPoint.y) / 2;
+         const height = Math.abs(y - startPoint.y) + 2;
+         currentWire.set({ left: x, top: midY, width: 2, height: height });
       }
 
-      currentWire.set({ x2: x, y2: y });
+      currentWire.setCoords();
       canvas.requestRenderAll();
     });
 
@@ -1245,7 +1241,7 @@
       if (o.button === 3) return;
       
       // If line is too short (just a click), remove it
-      if (currentWire.x1 === currentWire.x2 && currentWire.y1 === currentWire.y2) {
+      if (currentWire.width <= 2 && currentWire.height <= 2) {
          canvas.remove(currentWire);
       } else {
          currentWire.setCoords();
